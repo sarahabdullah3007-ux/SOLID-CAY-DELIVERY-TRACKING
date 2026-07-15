@@ -10,7 +10,7 @@
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f1f5f9; color: #334155; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f1f5f9; color: #334155; line-height: 1.5; }
         .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
         
         /* LOGIN */
@@ -65,37 +65,51 @@
         
         /* TABLE */
         .table-wrapper { background: #f1f5f9; border-radius: 12px; overflow-x: auto; border: 1px solid #e2e8f0; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        th { background: #e2e8f0; padding: 16px; text-align: left; font-weight: 600; border-bottom: 1px solid #cbd5e1; color: #475569; text-transform: uppercase; font-size: 12px; }
-        td { padding: 16px; border-bottom: 1px solid #e2e8f0; color: #334155; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { background: #e2e8f0; padding: 14px; text-align: left; font-weight: 600; border-bottom: 1px solid #cbd5e1; color: #475569; text-transform: uppercase; font-size: 11px; white-space: nowrap; }
+        td { padding: 14px; border-bottom: 1px solid #e2e8f0; color: #334155; }
         tr:hover { background: #f8fafc; }
+        .expand-arrow { cursor: pointer; color: #2563eb; font-weight: 600; width: 30px; text-align: center; transition: transform 0.2s; }
         
         .empty-state { text-align: center; padding: 40px; color: #94a3b8; }
         
         /* MODAL */
         .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
         .modal.active { display: flex; }
-        .modal-content { background: white; padding: 28px; border-radius: 12px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        .modal-content { background: white; padding: 28px; border-radius: 12px; max-width: 550px; width: 95%; max-height: 85vh; overflow-y: auto; }
         .modal-content h2 { margin-bottom: 20px; color: #1e293b; }
-        .form-group { margin-bottom: 16px; }
+        .form-group { margin-bottom: 14px; }
         .form-group label { display: block; margin-bottom: 6px; font-weight: 500; color: #334155; font-size: 13px; }
         .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; font-family: inherit; }
+        .form-group textarea { resize: vertical; min-height: 60px; }
         .modal-buttons { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+        .modal-buttons button { padding: 10px 16px; font-size: 13px; }
         
         /* TOAST */
-        #toast { position: fixed; bottom: 20px; right: 20px; background: #22c55e; color: white; padding: 14px 20px; border-radius: 6px; display: none; z-index: 2000; }
+        #toast { position: fixed; bottom: 20px; right: 20px; background: #22c55e; color: white; padding: 14px 20px; border-radius: 6px; display: none; z-index: 2000; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         #toast.show { display: block; }
         
-        .btn-small { padding: 6px 10px; font-size: 11px; background: #e0e7ff; color: #4f46e5; border: none; border-radius: 6px; cursor: pointer; }
+        .btn-small { padding: 6px 10px; font-size: 10px; background: #e0e7ff; color: #4f46e5; border: none; border-radius: 4px; cursor: pointer; margin: 2px; }
         .btn-small:hover { background: #c7d2fe; }
         .btn-delete { background: #fee2e2 !important; color: #991b1b !important; }
+        .btn-delete:hover { background: #fecaca !important; }
         
         .main-content { display: none; }
         .main-content.active { display: block; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         
-        .loading { text-align: center; padding: 20px; color: #94a3b8; }
+        .pdf-link { color: #14b8a6; text-decoration: none; font-weight: 500; cursor: pointer; }
+        .pdf-link:hover { text-decoration: underline; }
+        
+        .expand-details { background: #f0fdf4; padding: 14px; display: none; }
+        .expand-details.active { display: table-row; }
+        
+        /* PDF VIEWER */
+        #pdfViewerModal { background: rgba(0,0,0,0.8); }
+        .pdf-viewer-content { background: white; padding: 20px; border-radius: 12px; max-width: 800px; width: 95%; display: flex; flex-direction: column; gap: 12px; }
+        .pdf-viewer-content iframe { width: 100%; height: 500px; border: none; border-radius: 6px; }
+        .pdf-viewer-buttons { display: flex; gap: 10px; justify-content: flex-end; }
     </style>
 </head>
 <body>
@@ -118,7 +132,7 @@
         <div class="container">
             <!-- HEADER -->
             <header>
-                <h1>📦 Delivery Tracking</h1>
+                <h1>📦 Delivery Tracking Dashboard</h1>
                 <div class="header-right">
                     <div class="stats">
                         <div class="stat">
@@ -136,7 +150,7 @@
                     </div>
                     <div class="sync-status online" id="syncStatus">
                         <span class="sync-dot"></span>
-                        <span>Syncing...</span>
+                        <span>Synced ✓</span>
                     </div>
                     <div class="user-badge" id="userDisplay">User</div>
                     <button class="logout-btn" onclick="logout()">Logout</button>
@@ -146,10 +160,11 @@
             <!-- CONTROLS -->
             <div class="controls">
                 <div class="search-wrapper">
-                    <input type="text" id="searchInput" placeholder="🔍 Search deliveries..." onkeyup="filterTable()">
+                    <input type="text" id="searchInput" placeholder="🔍 Search..." onkeyup="filterTable()">
                     <button class="btn-tertiary" onclick="clearSearch()">Reset</button>
                 </div>
                 <button class="btn-primary" id="addBtn" onclick="openAddModal()">+ New</button>
+                <button class="btn-secondary" id="pasteBtn" onclick="openPasteModal()" style="display:none">📱 Paste</button>
                 <button class="btn-export" onclick="exportData()">📥 Export</button>
                 <button class="btn-import" onclick="document.getElementById('importFile').click()">📤 Import</button>
                 <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
@@ -158,22 +173,25 @@
             <!-- TABS -->
             <div class="tabs">
                 <button class="tab active" onclick="switchTab(event, 'new')">New Deliveries</button>
-                <button class="tab" onclick="switchTab(event, 'history')">History</button>
+                <button class="tab" onclick="switchTab(event, 'history')">Delivery History</button>
             </div>
 
             <!-- NEW TAB -->
             <div id="newTab" class="tab-content active">
-                <div class="loading" id="loadingNew">Loading...</div>
-                <div class="table-wrapper" id="newTableWrapper" style="display:none">
+                <div class="table-wrapper">
                     <table>
                         <thead>
                             <tr>
-                                <th>Date</th>
+                                <th></th>
+                                <th>Req Date</th>
                                 <th>Location</th>
+                                <th>Load Date</th>
                                 <th>Lorry</th>
                                 <th>Price</th>
                                 <th>Remark</th>
-                                <th>Actions</th>
+                                <th>DO NO</th>
+                                <th>DO Copy</th>
+                                <th>PO Copy</th>
                             </tr>
                         </thead>
                         <tbody id="newBody"></tbody>
@@ -184,17 +202,20 @@
 
             <!-- HISTORY TAB -->
             <div id="historyTab" class="tab-content">
-                <div class="loading" id="loadingHistory">Loading...</div>
-                <div class="table-wrapper" id="historyTableWrapper" style="display:none">
+                <div class="table-wrapper">
                     <table>
                         <thead>
                             <tr>
-                                <th>Date</th>
+                                <th></th>
+                                <th>Req Date</th>
                                 <th>Location</th>
+                                <th>Load Date</th>
                                 <th>Lorry</th>
                                 <th>Price</th>
-                                <th>DO No</th>
-                                <th>Actions</th>
+                                <th>Remark</th>
+                                <th>DO NO</th>
+                                <th>DO Copy</th>
+                                <th>PO Copy</th>
                             </tr>
                         </thead>
                         <tbody id="historyBody"></tbody>
@@ -211,12 +232,12 @@
             <h2 id="modalTitle">Add Delivery</h2>
             <form onsubmit="saveDelivery(event)">
                 <div class="form-group">
-                    <label>Date</label>
+                    <label>Requested Date</label>
                     <input type="date" id="f_date" required>
                 </div>
                 <div class="form-group">
                     <label>Location</label>
-                    <input type="text" id="f_location" placeholder="e.g. Klang" required>
+                    <input type="text" id="f_location" required>
                 </div>
                 <div class="form-group">
                     <label>Load Date</label>
@@ -228,15 +249,19 @@
                 </div>
                 <div class="form-group">
                     <label>Lorry Details</label>
-                    <input type="text" id="f_lorry" placeholder="e.g. 20ft Container" required>
+                    <input type="text" id="f_lorry" required>
                 </div>
                 <div class="form-group">
                     <label>Unit Price (RM)</label>
-                    <input type="number" id="f_price" placeholder="0.00" step="0.01" required>
+                    <input type="number" id="f_price" step="0.01" required>
                 </div>
                 <div class="form-group">
                     <label>DO No</label>
                     <input type="text" id="f_doNo">
+                </div>
+                <div class="form-group">
+                    <label>PO No</label>
+                    <input type="text" id="f_poNo">
                 </div>
                 <div class="form-group">
                     <label>Remark</label>
@@ -250,6 +275,34 @@
         </div>
     </div>
 
+    <!-- PASTE MODAL -->
+    <div class="modal" id="pasteModal">
+        <div class="modal-content">
+            <h2>📱 WhatsApp Smart Paste</h2>
+            <form onsubmit="handleSmartPaste(event)">
+                <div class="form-group">
+                    <label>Paste WhatsApp Message</label>
+                    <textarea id="pasteArea" required></textarea>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-tertiary" onclick="closePasteModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Parse & Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- PDF VIEWER MODAL -->
+    <div class="modal" id="pdfViewerModal">
+        <div class="pdf-viewer-content">
+            <iframe id="pdfFrame"></iframe>
+            <div class="pdf-viewer-buttons">
+                <button class="btn-primary" onclick="downloadCurrentPdf()">📥 Download</button>
+                <button class="btn-tertiary" onclick="closePdfViewer()">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- TOAST -->
     <div id="toast"></div>
 
@@ -258,7 +311,6 @@
         const SUPABASE_URL = 'https://dgszrgmxkjbltfikqzbi.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_OKuNGDoN6Nb8A-Fssxjvvg_oW3bKsh4';
         
-        // Initialize Supabase
         const { createClient } = window.supabase;
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -266,17 +318,8 @@
         let editIdx = null;
         let deliveries = [];
         let subscription = null;
-
-        // Check connection status
-        supabase.auth.onAuthStateChange((event, session) => {
-            updateSyncStatus();
-        });
-
-        function updateSyncStatus() {
-            const status = document.getElementById('syncStatus');
-            status.className = 'sync-status online';
-            status.innerHTML = '<span class="sync-dot"></span><span>Synced ✓</span>';
-        }
+        let currentPdfData = null;
+        let currentPdfName = null;
 
         // LOGIN
         function showPasswordField() {
@@ -285,8 +328,7 @@
         }
 
         function loginSolidHorizon() {
-            const pwd = document.getElementById('passwordInput').value;
-            if (pwd === '1234') {
+            if (document.getElementById('passwordInput').value === '1234') {
                 currentUser = 'Solid Horizon';
                 showDashboard();
             } else {
@@ -304,6 +346,7 @@
             document.getElementById('mainContent').classList.add('active');
             document.getElementById('userDisplay').textContent = currentUser;
             document.getElementById('addBtn').style.display = currentUser === 'Solid Horizon' ? 'block' : 'none';
+            document.getElementById('pasteBtn').style.display = currentUser === 'Solid Horizon' ? 'block' : 'none';
             loadData();
         }
 
@@ -318,127 +361,122 @@
             }
         }
 
-        // LOAD DATA FROM SUPABASE
+        // LOAD DATA
         async function loadData() {
             try {
-                showToast('Loading data...');
-                
                 const { data, error } = await supabase
                     .from('deliveries')
                     .select('*')
                     .order('id', { ascending: false });
 
                 if (error) {
-                    showToast('First time? Creating table...');
-                    await createTable();
+                    showToast('Creating table...');
                     deliveries = [];
                 } else {
                     deliveries = data || [];
                 }
-
                 renderTable();
                 setupRealtimeListener();
             } catch (err) {
-                console.error('Error:', err);
-                showToast('Error loading data');
+                console.error(err);
             }
         }
 
-        // CREATE TABLE IF DOESN'T EXIST
-        async function createTable() {
-            try {
-                await supabase.rpc('create_deliveries_table_if_not_exists');
-            } catch (err) {
-                console.log('Table creation via RPC failed, will try direct insert');
-            }
-        }
-
-        // SETUP REALTIME LISTENER
+        // REALTIME LISTENER
         function setupRealtimeListener() {
             if (subscription) subscription.unsubscribe();
-
             subscription = supabase
-                .channel('deliveries_channel')
-                .on('postgres_changes', 
-                    { event: '*', schema: 'public', table: 'deliveries' },
-                    (payload) => {
-                        console.log('Change received:', payload);
-                        loadData();
-                    }
-                )
+                .channel('deliveries')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'deliveries' }, () => loadData())
                 .subscribe();
         }
 
         // RENDER TABLE
         function renderTable() {
-            const newDeliveries = deliveries.filter(d => !d.do_no);
-            const historyDeliveries = deliveries.filter(d => d.do_no);
+            const newDeliveries = deliveries.filter(d => !d.do_no && !d.pdf_do_copy);
+            const historyDeliveries = deliveries.filter(d => d.do_no || d.pdf_do_copy);
 
-            // NEW TAB
+            // NEW
+            document.getElementById('emptyNew').style.display = newDeliveries.length === 0 ? 'block' : 'none';
             let newHTML = '';
-            if (newDeliveries.length === 0) {
-                document.getElementById('loadingNew').style.display = 'none';
-                document.getElementById('newTableWrapper').style.display = 'none';
-                document.getElementById('emptyNew').style.display = 'block';
-            } else {
-                document.getElementById('emptyNew').style.display = 'none';
-                document.getElementById('loadingNew').style.display = 'none';
-                document.getElementById('newTableWrapper').style.display = 'block';
+            newDeliveries.forEach((d, i) => {
+                const doCopyBtn = currentUser === 'Solid Horizon' ? '-' : (d.pdf_do_copy ? `<a href="#" class="pdf-link" onclick="viewPdf(${d.id},'do');return false">📄 View</a>` : `<button class="btn-small" onclick="uploadPdf(${d.id},'do')">Upload</button>`);
+                const poCopyBtn = d.pdf_po_copy ? `<a href="#" class="pdf-link" onclick="viewPdf(${d.id},'po');return false">📄 View</a>` : (currentUser === 'Solid Horizon' ? `<button class="btn-small" onclick="uploadPdf(${d.id},'po')">Upload</button>` : '-');
                 
-                newDeliveries.forEach(d => {
-                    newHTML += `
-                        <tr>
-                            <td>${d.date}</td>
-                            <td>${d.location}</td>
-                            <td>${d.lorry}</td>
-                            <td>RM${parseFloat(d.price).toFixed(2)}</td>
-                            <td><input type="text" value="${d.remark || ''}" style="width:100%;padding:6px;" onchange="updateRemark(${d.id}, this.value)"></td>
-                            <td>
-                                ${currentUser === 'Solid Horizon' ? `
-                                    <button class="btn-small" onclick="editDelivery(${d.id})">Edit</button>
-                                    <button class="btn-small btn-delete" onclick="deleteDelivery(${d.id})">Delete</button>
-                                ` : ''}
-                            </td>
-                        </tr>
-                    `;
-                });
-            }
+                newHTML += `
+                    <tr onclick="toggleExpand(${d.id})">
+                        <td><span class="expand-arrow" id="arrow_${d.id}">▶</span></td>
+                        <td>${d.date}</td>
+                        <td>${d.location}</td>
+                        <td>${d.load_date}</td>
+                        <td>${d.lorry}</td>
+                        <td>RM${parseFloat(d.price).toFixed(2)}</td>
+                        <td><input type="text" value="${d.remark || ''}" style="width:100%;padding:4px;" onchange="updateRemark(${d.id}, this.value)"></td>
+                        <td>${d.do_no || '-'}</td>
+                        <td>${doCopyBtn}</td>
+                        <td>${poCopyBtn}</td>
+                    </tr>
+                    <tr id="expand_${d.id}" class="expand-details">
+                        <td colspan="10" style="background:#f0fdf4">
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+                                <div><strong>Unload Date:</strong> ${d.unload_date || '-'}</div>
+                                <div><strong>PO No:</strong> ${d.po_no || '-'}</div>
+                                ${currentUser === 'Solid Horizon' ? `<div><button class="btn-small" onclick="editDelivery(${d.id})">Edit</button> <button class="btn-small btn-delete" onclick="deleteDelivery(${d.id})">Delete</button></div>` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
             document.getElementById('newBody').innerHTML = newHTML;
 
-            // HISTORY TAB
+            // HISTORY
+            document.getElementById('emptyHistory').style.display = historyDeliveries.length === 0 ? 'block' : 'none';
             let historyHTML = '';
-            if (historyDeliveries.length === 0) {
-                document.getElementById('loadingHistory').style.display = 'none';
-                document.getElementById('historyTableWrapper').style.display = 'none';
-                document.getElementById('emptyHistory').style.display = 'block';
-            } else {
-                document.getElementById('emptyHistory').style.display = 'none';
-                document.getElementById('loadingHistory').style.display = 'none';
-                document.getElementById('historyTableWrapper').style.display = 'block';
+            historyDeliveries.forEach((d, i) => {
+                const doCopyBtn = d.pdf_do_copy ? `<a href="#" class="pdf-link" onclick="viewPdf(${d.id},'do');return false">📄 View</a>` : (currentUser === 'Solid Horizon' ? `<button class="btn-small" onclick="uploadPdf(${d.id},'do')">Upload</button>` : '-');
+                const poCopyBtn = currentUser === 'Solid Horizon' ? (d.pdf_po_copy ? `<a href="#" class="pdf-link" onclick="viewPdf(${d.id},'po');return false">📄 View</a>` : `<button class="btn-small" onclick="uploadPdf(${d.id},'po')">Upload</button>`) : (d.pdf_po_copy ? `<a href="#" class="pdf-link" onclick="viewPdf(${d.id},'po');return false">📄 View</a>` : '-');
                 
-                historyDeliveries.forEach(d => {
-                    historyHTML += `
-                        <tr>
-                            <td>${d.date}</td>
-                            <td>${d.location}</td>
-                            <td>${d.lorry}</td>
-                            <td>RM${parseFloat(d.price).toFixed(2)}</td>
-                            <td>${d.do_no}</td>
-                            <td>${currentUser === 'Solid Horizon' ? `<button class="btn-small btn-delete" onclick="deleteDelivery(${d.id})">Delete</button>` : ''}</td>
-                        </tr>
-                    `;
-                });
-            }
+                historyHTML += `
+                    <tr onclick="toggleExpand(${d.id})">
+                        <td><span class="expand-arrow" id="arrow_${d.id}">▶</span></td>
+                        <td>${d.date}</td>
+                        <td>${d.location}</td>
+                        <td>${d.load_date}</td>
+                        <td>${d.lorry}</td>
+                        <td>RM${parseFloat(d.price).toFixed(2)}</td>
+                        <td><input type="text" value="${d.remark || ''}" style="width:100%;padding:4px;" onchange="updateRemark(${d.id}, this.value)"></td>
+                        <td>${d.do_no}</td>
+                        <td>${doCopyBtn}</td>
+                        <td>${poCopyBtn}</td>
+                    </tr>
+                    <tr id="expand_${d.id}" class="expand-details">
+                        <td colspan="10" style="background:#f0fdf4">
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+                                <div><strong>Unload Date:</strong> ${d.unload_date || '-'}</div>
+                                <div><strong>PO No:</strong> ${d.po_no || '-'}</div>
+                                ${currentUser === 'Solid Horizon' ? `<div><button class="btn-small btn-delete" onclick="deleteDelivery(${d.id})">Delete</button></div>` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
             document.getElementById('historyBody').innerHTML = historyHTML;
-
             updateStats();
         }
 
-        // UPDATE STATS
+        function toggleExpand(id) {
+            const row = document.getElementById(`expand_${id}`);
+            const arrow = document.getElementById(`arrow_${id}`);
+            if (row) {
+                row.classList.toggle('active');
+                arrow.style.transform = row.classList.contains('active') ? 'rotate(90deg)' : 'rotate(0deg)';
+            }
+        }
+
         function updateStats() {
             document.getElementById('totalCount').textContent = deliveries.length;
-            document.getElementById('newCount').textContent = deliveries.filter(d => !d.do_no).length;
-            document.getElementById('historyCount').textContent = deliveries.filter(d => d.do_no).length;
+            document.getElementById('newCount').textContent = deliveries.filter(d => !d.do_no && !d.pdf_do_copy).length;
+            document.getElementById('historyCount').textContent = deliveries.filter(d => d.do_no || d.pdf_do_copy).length;
         }
 
         // MODAL
@@ -452,6 +490,7 @@
             document.getElementById('f_lorry').value = '';
             document.getElementById('f_price').value = '';
             document.getElementById('f_doNo').value = '';
+            document.getElementById('f_poNo').value = '';
             document.getElementById('f_remark').value = '';
             document.getElementById('addModal').classList.add('active');
         }
@@ -474,6 +513,7 @@
             document.getElementById('f_lorry').value = d.lorry;
             document.getElementById('f_price').value = d.price;
             document.getElementById('f_doNo').value = d.do_no || '';
+            document.getElementById('f_poNo').value = d.po_no || '';
             document.getElementById('f_remark').value = d.remark || '';
             document.getElementById('addModal').classList.add('active');
         }
@@ -489,74 +529,157 @@
                 lorry: document.getElementById('f_lorry').value,
                 price: document.getElementById('f_price').value,
                 do_no: document.getElementById('f_doNo').value,
+                po_no: document.getElementById('f_poNo').value,
                 remark: document.getElementById('f_remark').value
             };
 
             try {
                 if (editIdx) {
-                    // UPDATE
-                    const { error } = await supabase
-                        .from('deliveries')
-                        .update(data)
-                        .eq('id', editIdx);
-                    
-                    if (error) throw error;
+                    await supabase.from('deliveries').update(data).eq('id', editIdx);
                     showToast('Updated');
                 } else {
-                    // INSERT
-                    const { error } = await supabase
-                        .from('deliveries')
-                        .insert([data]);
-                    
-                    if (error) throw error;
+                    await supabase.from('deliveries').insert([data]);
                     showToast('Added');
                 }
-                
                 closeAddModal();
                 await loadData();
             } catch (err) {
-                console.error(err);
                 showToast('Error: ' + err.message);
             }
         }
 
         async function deleteDelivery(id) {
-            if (currentUser !== 'Solid Horizon') return;
-            if (!confirm('Delete?')) return;
-
+            if (currentUser !== 'Solid Horizon' || !confirm('Delete?')) return;
             try {
-                const { error } = await supabase
-                    .from('deliveries')
-                    .delete()
-                    .eq('id', id);
-
-                if (error) throw error;
+                await supabase.from('deliveries').delete().eq('id', id);
                 showToast('Deleted');
                 await loadData();
             } catch (err) {
-                showToast('Error: ' + err.message);
+                showToast('Error');
             }
         }
 
         async function updateRemark(id, val) {
             if (currentUser !== 'Solid Horizon') return;
-
             try {
-                await supabase
-                    .from('deliveries')
-                    .update({ remark: val })
-                    .eq('id', id);
+                await supabase.from('deliveries').update({ remark: val }).eq('id', id);
             } catch (err) {
                 console.error(err);
             }
+        }
+
+        // PDF
+        function uploadPdf(id, type) {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'application/pdf';
+            input.onchange = (e) => handlePdfUpload(id, type, e);
+            input.click();
+        }
+
+        async function handlePdfUpload(id, type, e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                try {
+                    const column = type === 'do' ? 'pdf_do_copy' : 'pdf_po_copy';
+                    await supabase.from('deliveries').update({ [column]: event.target.result }).eq('id', id);
+                    showToast('PDF uploaded');
+                    await loadData();
+                } catch (err) {
+                    showToast('Error uploading PDF');
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function viewPdf(id, type) {
+            const d = deliveries.find(x => x.id === id);
+            if (!d) return;
+            const pdfData = type === 'do' ? d.pdf_do_copy : d.pdf_po_copy;
+            if (!pdfData) return;
+            currentPdfData = pdfData;
+            currentPdfName = `delivery_${id}_${type}.pdf`;
+            document.getElementById('pdfFrame').src = pdfData;
+            document.getElementById('pdfViewerModal').classList.add('active');
+        }
+
+        function closePdfViewer() {
+            document.getElementById('pdfViewerModal').classList.remove('active');
+            document.getElementById('pdfFrame').src = '';
+        }
+
+        function downloadCurrentPdf() {
+            if (!currentPdfData) return;
+            const link = document.createElement('a');
+            link.href = currentPdfData;
+            link.download = currentPdfName;
+            link.click();
+        }
+
+        // SMART PASTE
+        function openPasteModal() {
+            document.getElementById('pasteArea').value = '';
+            document.getElementById('pasteModal').classList.add('active');
+        }
+
+        function closePasteModal() {
+            document.getElementById('pasteModal').classList.remove('active');
+        }
+
+        async function handleSmartPaste(e) {
+            e.preventDefault();
+            const text = document.getElementById('pasteArea').value;
+            const parsed = parsePaste(text);
+            if (parsed) {
+                try {
+                    await supabase.from('deliveries').insert([parsed]);
+                    showToast('Added from paste');
+                    closePasteModal();
+                    await loadData();
+                } catch (err) {
+                    showToast('Error');
+                }
+            } else {
+                showToast('Could not parse');
+            }
+        }
+
+        function parsePaste(text) {
+            const lines = text.split('\n');
+            const data = {
+                date: new Date().toISOString().split('T')[0],
+                location: '',
+                load_date: '',
+                unload_date: '',
+                lorry: '',
+                price: 0,
+                do_no: '',
+                po_no: '',
+                remark: ''
+            };
+
+            lines.forEach(line => {
+                const lower = line.toLowerCase();
+                if (lower.includes('location') || lower.includes('klang')) data.location = line.split(':')[1]?.trim() || 'Klang';
+                if (lower.includes('lorry') || lower.includes('container')) data.lorry = line.split(':')[1]?.trim() || '';
+                if (lower.includes('price') || lower.includes('rm')) {
+                    const match = line.match(/\d+/);
+                    if (match) data.price = match[0];
+                }
+            });
+
+            return data.location && data.lorry ? data : null;
         }
 
         // SEARCH
         function filterTable() {
             const term = document.getElementById('searchInput').value.toLowerCase();
             document.querySelectorAll('#newBody tr, #historyBody tr').forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(term) ? '' : 'none';
+                if (!row.classList.contains('expand-details')) {
+                    row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none';
+                }
             });
         }
 
@@ -573,10 +696,10 @@
             document.getElementById(tab + 'Tab').classList.add('active');
         }
 
-        // EXPORT
+        // EXPORT/IMPORT
         function exportData() {
-            const data = JSON.stringify({deliveries, exportDate: new Date().toLocaleString()}, null, 2);
-            const blob = new Blob([data], {type: 'application/json'});
+            const json = JSON.stringify({deliveries, exportDate: new Date().toLocaleString()}, null, 2);
+            const blob = new Blob([json], {type: 'application/json'});
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -586,11 +709,9 @@
             showToast('Exported');
         }
 
-        // IMPORT
         async function importData(e) {
             const file = e.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.onload = async (event) => {
                 try {
@@ -603,18 +724,14 @@
                         lorry: d.lorry,
                         price: d.price,
                         do_no: d.do_no || d.doNo,
+                        po_no: d.po_no || d.poNo,
                         remark: d.remark
                     }));
-
-                    const { error } = await supabase
-                        .from('deliveries')
-                        .insert(toInsert);
-
-                    if (error) throw error;
+                    await supabase.from('deliveries').insert(toInsert);
                     showToast(`Imported ${toInsert.length} deliveries`);
                     await loadData();
                 } catch (err) {
-                    showToast('Import error: ' + err.message);
+                    showToast('Import error');
                 }
             };
             reader.readAsText(file);
@@ -627,6 +744,15 @@
             t.classList.add('show');
             setTimeout(() => t.classList.remove('show'), 2000);
         }
+
+        // ESC KEY
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.getElementById('addModal').classList.remove('active');
+                document.getElementById('pasteModal').classList.remove('active');
+                document.getElementById('pdfViewerModal').classList.remove('active');
+            }
+        });
     </script>
 </body>
 </html>
