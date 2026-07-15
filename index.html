@@ -3,784 +3,244 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solid Horizon & Chan A Yab Delivery Tracking</title>
+    <title>Delivery Tracking - Real-Time Sync</title>
     
-    <!-- Firebase SDK v9+ (Compatible with HTML) -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.4"></script>
     
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-            background: #f1f5f9;
-            color: #334155;
-            line-height: 1.5;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* Login Screen */
-        .login-screen {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a8c 100%);
-        }
-
-        .login-container {
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            text-align: center;
-            max-width: 400px;
-            width: 90%;
-        }
-
-        .login-container h1 {
-            font-size: 24px;
-            margin-bottom: 10px;
-            color: #1e3a5f;
-        }
-
-        .login-container p {
-            color: #666;
-            margin-bottom: 30px;
-        }
-
-        .login-btn {
-            width: 100%;
-            padding: 14px;
-            margin: 10px 0;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .login-btn-primary {
-            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a8c 100%);
-            color: white;
-            box-shadow: 0 4px 12px rgba(30, 58, 95, 0.3);
-        }
-
-        .login-btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(30, 58, 95, 0.4);
-        }
-
-        .login-btn-secondary {
-            background: #e2e8f0;
-            color: #1e3a5f;
-        }
-
-        .login-btn-secondary:hover {
-            background: #cbd5e1;
-        }
-
-        #passwordField {
-            display: none;
-            margin-bottom: 20px;
-        }
-
-        #passwordInput {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            font-size: 16px;
-            margin-bottom: 10px;
-        }
-
-        /* Header */
-        header {
-            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
-            color: white;
-            padding: 28px;
-            border-radius: 12px;
-            margin-bottom: 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-
-        header h1 {
-            font-size: 24px;
-            font-weight: 600;
-        }
-
-        .header-right {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-        }
-
-        .stats {
-            display: flex;
-            gap: 16px;
-        }
-
-        .stat {
-            background: rgba(20, 184, 166, 0.15);
-            padding: 12px 18px;
-            border-radius: 8px;
-            border: 1px solid rgba(20, 184, 166, 0.3);
-            text-align: center;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: #cbd5e1;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-        }
-
-        .stat-value {
-            font-size: 24px;
-            font-weight: 700;
-            color: #14b8a6;
-        }
-
-        .user-section {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .user-badge {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 8px 14px;
-            border-radius: 6px;
-            font-size: 13px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .logout-btn {
-            padding: 8px 14px;
-            background: #ef4444;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 13px;
-            transition: all 0.2s;
-        }
-
-        .logout-btn:hover {
-            background: #dc2626;
-            transform: translateY(-1px);
-        }
-
-        /* Sync Status */
-        .sync-status {
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 500;
-            display: flex;
-            gap: 6px;
-            align-items: center;
-        }
-
-        .sync-status.connected {
-            background: rgba(34, 197, 94, 0.2);
-            color: #22c55e;
-        }
-
-        .sync-status.disconnected {
-            background: rgba(239, 68, 68, 0.2);
-            color: #ef4444;
-        }
-
-        .sync-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        .sync-status.connected .sync-dot {
-            background: #22c55e;
-        }
-
-        .sync-status.disconnected .sync-dot {
-            background: #ef4444;
-            animation: none;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        /* Controls */
-        .controls {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 24px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        /* Buttons */
-        button {
-            padding: 12px 18px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 13px;
-            white-space: nowrap;
-            transition: all 0.2s;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
-            color: white;
-            box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(20, 184, 166, 0.4);
-        }
-
-        .btn-secondary {
-            background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
-            color: white;
-            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
-        }
-
-        .btn-secondary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
-        }
-
-        .btn-tertiary {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            color: white;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-        }
-
-        .btn-tertiary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
-        }
-
-        .btn-export {
-            background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
-            color: white;
-            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
-        }
-
-        .btn-export:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(34, 197, 94, 0.4);
-        }
-
-        .btn-import {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            color: white;
-            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
-        }
-
-        .btn-import:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(217, 119, 6, 0.4);
-        }
-
-        /* Search */
-        .search-container {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            flex: 1;
-            max-width: 500px;
-        }
-
-        .search-input-wrapper {
-            position: relative;
-            flex: 1;
-        }
-
-        .search-input-wrapper span {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #94a3b8;
-            font-size: 16px;
-        }
-
-        #searchInput {
-            width: 100%;
-            padding: 12px 12px 12px 40px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 13px;
-            background: white;
-        }
-
-        /* Tabs */
-        .tabs {
-            display: flex;
-            gap: 0;
-            margin-bottom: 24px;
-            border-bottom: 2px solid #e2e8f0;
-        }
-
-        .tab {
-            padding: 12px 20px;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            color: #64748b;
-            font-weight: 500;
-            border-bottom: 3px solid transparent;
-            transition: all 0.2s;
-        }
-
-        .tab.active {
-            color: #2563eb;
-            border-bottom-color: #2563eb;
-        }
-
-        .tab:hover {
-            color: #334155;
-        }
-
-        /* Table */
-        .table-wrapper {
-            background: #f1f5f9;
-            border-radius: 12px;
-            overflow-x: auto;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            border: 1px solid #e2e8f0;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-
-        th {
-            background: #e2e8f0;
-            padding: 16px;
-            text-align: left;
-            font-weight: 600;
-            border-bottom: 1px solid #cbd5e1;
-            color: #475569;
-            white-space: nowrap;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-size: 12px;
-        }
-
-        td {
-            padding: 16px;
-            border-bottom: 1px solid #e2e8f0;
-            color: #334155;
-        }
-
-        tr:hover {
-            background: #f8fafc;
-        }
-
-        .expand-arrow {
-            cursor: pointer;
-            color: #2563eb;
-            font-weight: 600;
-            width: 30px;
-            text-align: center;
-            transition: transform 0.2s;
-            display: inline-block;
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: #94a3b8;
-        }
-
-        .empty-state p {
-            margin: 10px 0;
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 28px;
-            border-radius: 12px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .modal-content h2 {
-            margin-bottom: 20px;
-            color: #1e293b;
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 500;
-            color: #334155;
-            font-size: 13px;
-        }
-
-        .form-group input, .form-group textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            font-size: 13px;
-            font-family: inherit;
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            margin-top: 20px;
-        }
-
-        .modal-buttons button {
-            padding: 10px 16px;
-            font-size: 13px;
-        }
-
-        /* Toast */
-        #toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #22c55e;
-            color: white;
-            padding: 14px 20px;
-            border-radius: 6px;
-            display: none;
-            z-index: 2000;
-            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
-            animation: slideIn 0.3s ease-out;
-        }
-
-        #toast.show {
-            display: block;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        .pdf-link {
-            color: #14b8a6;
-            text-decoration: none;
-            font-weight: 500;
-            cursor: pointer;
-        }
-
-        .pdf-link:hover {
-            text-decoration: underline;
-        }
-
-        .btn-action {
-            padding: 6px 10px;
-            font-size: 11px;
-            background: #e0e7ff;
-            color: #4f46e5;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-
-        .btn-action:hover {
-            background: #c7d2fe;
-        }
-
-        .btn-delete {
-            background: #fee2e2 !important;
-            color: #991b1b !important;
-        }
-
-        .btn-delete:hover {
-            background: #fecaca !important;
-        }
-
-        /* PDF Viewer Modal */
-        #pdfViewerModal {
-            background: rgba(0, 0, 0, 0.8);
-        }
-
-        .pdf-viewer-content {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            max-width: 800px;
-            width: 90%;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .pdf-viewer-content iframe {
-            width: 100%;
-            height: 600px;
-            border: none;
-            border-radius: 6px;
-        }
-
-        .pdf-viewer-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-        }
-
-        .pdf-viewer-buttons button {
-            padding: 10px 16px;
-            font-size: 13px;
-        }
-
-        .main-content {
-            display: none;
-        }
-
-        .main-content.active {
-            display: block;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f1f5f9; color: #334155; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        
+        /* LOGIN */
+        .login-screen { display: flex; align-items: center; justify-content: center; height: 100vh; background: linear-gradient(135deg, #1e3a5f 0%, #2d5a8c 100%); }
+        .login-container { background: white; padding: 40px; border-radius: 12px; text-align: center; max-width: 400px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+        .login-container h1 { font-size: 28px; margin-bottom: 10px; color: #1e3a5f; }
+        .login-container p { color: #666; margin-bottom: 30px; }
+        .login-btn { width: 100%; padding: 14px; margin: 10px 0; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .login-btn-primary { background: linear-gradient(135deg, #1e3a5f 0%, #2d5a8c 100%); color: white; }
+        .login-btn-primary:hover { transform: translateY(-2px); }
+        .login-btn-secondary { background: #e2e8f0; color: #1e3a5f; }
+        .login-btn-secondary:hover { background: #cbd5e1; }
+        #passwordField { display: none; }
+        #passwordInput { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 10px; }
+        
+        /* HEADER */
+        header { background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%); color: white; padding: 20px; border-radius: 12px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
+        header h1 { font-size: 24px; }
+        .header-right { display: flex; gap: 20px; align-items: center; }
+        .stats { display: flex; gap: 16px; }
+        .stat { background: rgba(20, 184, 166, 0.15); padding: 12px 18px; border-radius: 8px; text-align: center; }
+        .stat-label { font-size: 12px; color: #cbd5e1; text-transform: uppercase; }
+        .stat-value { font-size: 24px; font-weight: 700; color: #14b8a6; }
+        
+        .sync-status { padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; display: flex; gap: 6px; align-items: center; }
+        .sync-status.online { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        .sync-status.offline { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        
+        .user-badge { background: rgba(255,255,255,0.2); padding: 8px 14px; border-radius: 6px; font-size: 13px; }
+        .logout-btn { padding: 8px 14px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; }
+        .logout-btn:hover { background: #dc2626; }
+        
+        /* CONTROLS */
+        .controls { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; align-items: center; }
+        .search-wrapper { display: flex; gap: 8px; flex: 1; max-width: 500px; }
+        #searchInput { flex: 1; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; }
+        
+        button { padding: 12px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; }
+        .btn-primary { background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); }
+        .btn-secondary { background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%); color: white; }
+        .btn-tertiary { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; }
+        .btn-export { background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); color: white; }
+        .btn-import { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; }
+        
+        /* TABS */
+        .tabs { display: flex; border-bottom: 2px solid #e2e8f0; margin-bottom: 24px; }
+        .tab { padding: 12px 20px; background: transparent; border: none; cursor: pointer; color: #64748b; font-weight: 500; border-bottom: 3px solid transparent; }
+        .tab.active { color: #2563eb; border-bottom-color: #2563eb; }
+        
+        /* TABLE */
+        .table-wrapper { background: #f1f5f9; border-radius: 12px; overflow-x: auto; border: 1px solid #e2e8f0; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { background: #e2e8f0; padding: 16px; text-align: left; font-weight: 600; border-bottom: 1px solid #cbd5e1; color: #475569; text-transform: uppercase; font-size: 12px; }
+        td { padding: 16px; border-bottom: 1px solid #e2e8f0; color: #334155; }
+        tr:hover { background: #f8fafc; }
+        
+        .empty-state { text-align: center; padding: 40px; color: #94a3b8; }
+        
+        /* MODAL */
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; padding: 28px; border-radius: 12px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        .modal-content h2 { margin-bottom: 20px; color: #1e293b; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 500; color: #334155; font-size: 13px; }
+        .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; font-family: inherit; }
+        .modal-buttons { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+        
+        /* TOAST */
+        #toast { position: fixed; bottom: 20px; right: 20px; background: #22c55e; color: white; padding: 14px 20px; border-radius: 6px; display: none; z-index: 2000; }
+        #toast.show { display: block; }
+        
+        .btn-small { padding: 6px 10px; font-size: 11px; background: #e0e7ff; color: #4f46e5; border: none; border-radius: 6px; cursor: pointer; }
+        .btn-small:hover { background: #c7d2fe; }
+        .btn-delete { background: #fee2e2 !important; color: #991b1b !important; }
+        
+        .main-content { display: none; }
+        .main-content.active { display: block; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .loading { text-align: center; padding: 20px; color: #94a3b8; }
     </style>
 </head>
 <body>
-    <!-- Login Screen -->
+    <!-- LOGIN SCREEN -->
     <div class="login-screen" id="loginScreen">
         <div class="login-container">
             <h1>📦 Delivery Tracking</h1>
             <p>Solid Horizon & Chan A Yab</p>
-            
             <button class="login-btn login-btn-primary" onclick="showPasswordField()">🔒 Solid Horizon (Password)</button>
-            
             <div id="passwordField">
                 <input type="password" id="passwordInput" placeholder="Enter password" />
                 <button class="login-btn login-btn-primary" onclick="loginSolidHorizon()">Login</button>
             </div>
-            
             <button class="login-btn login-btn-secondary" onclick="loginChanAYab()">👥 Chan A Yab (Open Access)</button>
         </div>
     </div>
 
-    <!-- Main Dashboard -->
+    <!-- MAIN DASHBOARD -->
     <div class="main-content" id="mainContent">
         <div class="container">
-            <!-- Header -->
+            <!-- HEADER -->
             <header>
-                <div>
-                    <h1>📦 Delivery Tracking Dashboard</h1>
-                </div>
+                <h1>📦 Delivery Tracking</h1>
                 <div class="header-right">
                     <div class="stats">
                         <div class="stat">
                             <div class="stat-label">Total</div>
-                            <div class="stat-value" id="totalDeliveries">0</div>
+                            <div class="stat-value" id="totalCount">0</div>
                         </div>
                         <div class="stat">
                             <div class="stat-label">New</div>
-                            <div class="stat-value" id="pendingCount">0</div>
+                            <div class="stat-value" id="newCount">0</div>
                         </div>
                         <div class="stat">
                             <div class="stat-label">History</div>
-                            <div class="stat-value" id="deliveredCount">0</div>
+                            <div class="stat-value" id="historyCount">0</div>
                         </div>
                     </div>
-                    <div class="sync-status connected" id="syncStatus">
+                    <div class="sync-status online" id="syncStatus">
                         <span class="sync-dot"></span>
                         <span>Syncing...</span>
                     </div>
-                    <div class="user-section">
-                        <div class="user-badge" id="userDisplay">-</div>
-                        <button class="logout-btn" onclick="logout()">Logout</button>
-                    </div>
+                    <div class="user-badge" id="userDisplay">User</div>
+                    <button class="logout-btn" onclick="logout()">Logout</button>
                 </div>
             </header>
 
-            <!-- Controls -->
+            <!-- CONTROLS -->
             <div class="controls">
-                <div class="search-container">
-                    <div class="search-input-wrapper">
-                        <span>🔍</span>
-                        <input type="text" id="searchInput" placeholder="Search by keyword..." onkeyup="performSearch()">
-                    </div>
-                    <button class="btn-tertiary" onclick="resetSearch()">🔄 Reset</button>
+                <div class="search-wrapper">
+                    <input type="text" id="searchInput" placeholder="🔍 Search deliveries..." onkeyup="filterTable()">
+                    <button class="btn-tertiary" onclick="clearSearch()">Reset</button>
                 </div>
-                <button class="btn-primary" id="addButton" onclick="openAddModal()">+ New</button>
-                <button class="btn-secondary" id="pasteButton" onclick="openSmartPasteModal()">📱 Paste</button>
+                <button class="btn-primary" id="addBtn" onclick="openAddModal()">+ New</button>
                 <button class="btn-export" onclick="exportData()">📥 Export</button>
-                <button class="btn-import" onclick="triggerImport()">📤 Import</button>
-                <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+                <button class="btn-import" onclick="document.getElementById('importFile').click()">📤 Import</button>
+                <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
             </div>
 
-            <!-- Tabs -->
+            <!-- TABS -->
             <div class="tabs">
-                <button class="tab active" onclick="switchTab(event, 'newTab')">New Deliveries</button>
-                <button class="tab" onclick="switchTab(event, 'historyTab')">Delivery History</button>
+                <button class="tab active" onclick="switchTab(event, 'new')">New Deliveries</button>
+                <button class="tab" onclick="switchTab(event, 'history')">History</button>
             </div>
 
-            <!-- New Deliveries Tab -->
+            <!-- NEW TAB -->
             <div id="newTab" class="tab-content active">
-                <div class="table-wrapper">
-                    <table id="newTable">
+                <div class="loading" id="loadingNew">Loading...</div>
+                <div class="table-wrapper" id="newTableWrapper" style="display:none">
+                    <table>
                         <thead>
                             <tr>
-                                <th></th>
-                                <th>Requested Date</th>
+                                <th>Date</th>
                                 <th>Location</th>
-                                <th>Load Date</th>
-                                <th>Lorry Details</th>
-                                <th>Unit Price</th>
+                                <th>Lorry</th>
+                                <th>Price</th>
                                 <th>Remark</th>
-                                <th>DO NO.</th>
-                                <th>DO Copy</th>
-                                <th>PO Copy</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="newBody">
-                        </tbody>
+                        <tbody id="newBody"></tbody>
                     </table>
                 </div>
-                <div class="empty-state" id="emptyNew" style="display: none;">
-                    <p>No new deliveries yet</p>
-                    <p style="font-size: 12px; color: #cbd5e1;">Click "+ New" to add your first delivery</p>
-                </div>
+                <div class="empty-state" id="emptyNew" style="display:none">No new deliveries</div>
             </div>
 
-            <!-- History Tab -->
+            <!-- HISTORY TAB -->
             <div id="historyTab" class="tab-content">
-                <div class="table-wrapper">
-                    <table id="historyTable">
+                <div class="loading" id="loadingHistory">Loading...</div>
+                <div class="table-wrapper" id="historyTableWrapper" style="display:none">
+                    <table>
                         <thead>
                             <tr>
-                                <th></th>
-                                <th>Requested Date</th>
+                                <th>Date</th>
                                 <th>Location</th>
-                                <th>Load Date</th>
-                                <th>Lorry Details</th>
-                                <th>Unit Price</th>
-                                <th>Remark</th>
-                                <th>DO NO.</th>
-                                <th>DO Copy</th>
-                                <th>PO Copy</th>
+                                <th>Lorry</th>
+                                <th>Price</th>
+                                <th>DO No</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="historyBody">
-                        </tbody>
+                        <tbody id="historyBody"></tbody>
                     </table>
                 </div>
-                <div class="empty-state" id="emptyHistory" style="display: none;">
-                    <p>No completed deliveries yet</p>
-                    <p style="font-size: 12px; color: #cbd5e1;">Deliveries move here when DO Copy is uploaded</p>
-                </div>
+                <div class="empty-state" id="emptyHistory" style="display:none">No history</div>
             </div>
         </div>
     </div>
 
-    <!-- Add/Edit Modal -->
+    <!-- ADD MODAL -->
     <div class="modal" id="addModal">
         <div class="modal-content">
-            <h2>Add Delivery</h2>
+            <h2 id="modalTitle">Add Delivery</h2>
             <form onsubmit="saveDelivery(event)">
                 <div class="form-group">
-                    <label>Requested Date</label>
-                    <input type="date" id="requestedDate" required>
+                    <label>Date</label>
+                    <input type="date" id="f_date" required>
                 </div>
                 <div class="form-group">
                     <label>Location</label>
-                    <input type="text" id="location" placeholder="e.g., Klang" required>
+                    <input type="text" id="f_location" placeholder="e.g. Klang" required>
                 </div>
                 <div class="form-group">
                     <label>Load Date</label>
-                    <input type="date" id="loadDate" required>
+                    <input type="date" id="f_loadDate" required>
                 </div>
                 <div class="form-group">
                     <label>Unload Date</label>
-                    <input type="date" id="unloadDate" required>
+                    <input type="date" id="f_unloadDate">
                 </div>
                 <div class="form-group">
                     <label>Lorry Details</label>
-                    <input type="text" id="lorryDetails" placeholder="e.g., 20ft Container" required>
+                    <input type="text" id="f_lorry" placeholder="e.g. 20ft Container" required>
                 </div>
                 <div class="form-group">
                     <label>Unit Price (RM)</label>
-                    <input type="number" id="unitPrice" placeholder="0.00" step="0.01" required>
+                    <input type="number" id="f_price" placeholder="0.00" step="0.01" required>
                 </div>
                 <div class="form-group">
-                    <label>DO No.</label>
-                    <input type="text" id="doNo" placeholder="DO number">
+                    <label>DO No</label>
+                    <input type="text" id="f_doNo">
                 </div>
                 <div class="form-group">
-                    <label>PO No.</label>
-                    <input type="text" id="poNo" placeholder="PO number">
+                    <label>Remark</label>
+                    <textarea id="f_remark"></textarea>
                 </div>
                 <div class="modal-buttons">
                     <button type="button" class="btn-tertiary" onclick="closeAddModal()">Cancel</button>
@@ -790,93 +250,47 @@
         </div>
     </div>
 
-    <!-- Smart Paste Modal -->
-    <div class="modal" id="smartPasteModal">
-        <div class="modal-content">
-            <h2>📱 WhatsApp Smart Paste</h2>
-            <form onsubmit="handleSmartPaste(event)">
-                <div class="form-group">
-                    <label>Paste WhatsApp Message Here</label>
-                    <textarea id="pasteArea" placeholder="Paste your WhatsApp message..." required></textarea>
-                </div>
-                <div class="modal-buttons">
-                    <button type="button" class="btn-tertiary" onclick="closeSmartPasteModal()">Cancel</button>
-                    <button type="submit" class="btn-primary">Parse & Add</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- PDF Viewer Modal -->
-    <div class="modal" id="pdfViewerModal">
-        <div class="pdf-viewer-content">
-            <iframe id="pdfFrame"></iframe>
-            <div class="pdf-viewer-buttons">
-                <button class="btn-primary" id="downloadPdfBtn" onclick="downloadCurrentPdf()">📥 Download</button>
-                <button class="btn-tertiary" onclick="closePdfViewer()">Close</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast -->
+    <!-- TOAST -->
     <div id="toast"></div>
 
     <script>
-        // Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAqLRAj-RQWyrt9ci9iVKptds9mvAGUnOY",
-            authDomain: "solid-cay-delivery-tracking.firebaseapp.com",
-            databaseURL: "https://solid-cay-delivery-tracking-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "solid-cay-delivery-tracking",
-            storageBucket: "solid-cay-delivery-tracking.firebasestorage.app",
-            messagingSenderId: "333775516752",
-            appId: "1:333775516752:web:2af6651b67c03c126f0d55"
-        };
+        // Supabase Config
+        const SUPABASE_URL = 'https://dgszrgmxkjbltfikqzbi.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_OKuNGDoN6Nb8A-Fssxjvvg_oW3bKsh4';
+        
+        // Initialize Supabase
+        const { createClient } = window.supabase;
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
-        // Global variables
         let currentUser = null;
+        let editIdx = null;
         let deliveries = [];
-        let editingIndex = null;
-        let currentPdfData = null;
-        let currentPdfName = null;
-        let firebaseUnsubscribe = null;
-        let isConnected = false;
+        let subscription = null;
 
-        // Monitor connection status
-        const connectedRef = database.ref('.info/connected');
-        connectedRef.on('value', snap => {
-            isConnected = snap.val() === true;
+        // Check connection status
+        supabase.auth.onAuthStateChange((event, session) => {
             updateSyncStatus();
         });
 
         function updateSyncStatus() {
-            const syncStatus = document.getElementById('syncStatus');
-            if (isConnected) {
-                syncStatus.className = 'sync-status connected';
-                syncStatus.innerHTML = '<span class="sync-dot"></span><span>Synced ✓</span>';
-            } else {
-                syncStatus.className = 'sync-status disconnected';
-                syncStatus.innerHTML = '<span class="sync-dot"></span><span>Offline</span>';
-            }
+            const status = document.getElementById('syncStatus');
+            status.className = 'sync-status online';
+            status.innerHTML = '<span class="sync-dot"></span><span>Synced ✓</span>';
         }
 
-        // Login functions
+        // LOGIN
         function showPasswordField() {
             document.getElementById('passwordField').style.display = 'block';
             document.getElementById('passwordInput').focus();
         }
 
         function loginSolidHorizon() {
-            const password = document.getElementById('passwordInput').value;
-            if (password === '1234') {
+            const pwd = document.getElementById('passwordInput').value;
+            if (pwd === '1234') {
                 currentUser = 'Solid Horizon';
                 showDashboard();
             } else {
-                showToast('Incorrect password');
+                showToast('Wrong password');
             }
         }
 
@@ -889,18 +303,14 @@
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('mainContent').classList.add('active');
             document.getElementById('userDisplay').textContent = currentUser;
-            document.getElementById('addButton').style.display = currentUser === 'Solid Horizon' ? 'block' : 'none';
-            document.getElementById('pasteButton').style.display = currentUser === 'Solid Horizon' ? 'block' : 'none';
+            document.getElementById('addBtn').style.display = currentUser === 'Solid Horizon' ? 'block' : 'none';
             loadData();
         }
 
         function logout() {
-            if (confirm('Are you sure you want to logout?')) {
+            if (confirm('Logout?')) {
                 currentUser = null;
-                if (firebaseUnsubscribe) {
-                    firebaseUnsubscribe();
-                }
-                deliveries = [];
+                if (subscription) subscription.unsubscribe();
                 document.getElementById('loginScreen').style.display = 'flex';
                 document.getElementById('mainContent').classList.remove('active');
                 document.getElementById('passwordField').style.display = 'none';
@@ -908,657 +318,315 @@
             }
         }
 
-        // Firebase Data Management
-        function loadData() {
-            showToast('Connecting to Firebase...');
-            
-            if (firebaseUnsubscribe) {
-                firebaseUnsubscribe();
-            }
+        // LOAD DATA FROM SUPABASE
+        async function loadData() {
+            try {
+                showToast('Loading data...');
+                
+                const { data, error } = await supabase
+                    .from('deliveries')
+                    .select('*')
+                    .order('id', { ascending: false });
 
-            firebaseUnsubscribe = database.ref('deliveries').on('value', 
-                (snapshot) => {
-                    if (snapshot.exists()) {
-                        const data = snapshot.val();
-                        deliveries = Object.keys(data).map(key => ({
-                            ...data[key],
-                            id: key
-                        }));
-                    } else {
-                        deliveries = [];
+                if (error) {
+                    showToast('First time? Creating table...');
+                    await createTable();
+                    deliveries = [];
+                } else {
+                    deliveries = data || [];
+                }
+
+                renderTable();
+                setupRealtimeListener();
+            } catch (err) {
+                console.error('Error:', err);
+                showToast('Error loading data');
+            }
+        }
+
+        // CREATE TABLE IF DOESN'T EXIST
+        async function createTable() {
+            try {
+                await supabase.rpc('create_deliveries_table_if_not_exists');
+            } catch (err) {
+                console.log('Table creation via RPC failed, will try direct insert');
+            }
+        }
+
+        // SETUP REALTIME LISTENER
+        function setupRealtimeListener() {
+            if (subscription) subscription.unsubscribe();
+
+            subscription = supabase
+                .channel('deliveries_channel')
+                .on('postgres_changes', 
+                    { event: '*', schema: 'public', table: 'deliveries' },
+                    (payload) => {
+                        console.log('Change received:', payload);
+                        loadData();
                     }
-                    renderTable();
-                    updateStats();
-                    showToast('Data synced! ✓');
-                },
-                (error) => {
-                    console.error('Firebase error:', error);
-                    showToast('Connection error: ' + error.message);
-                }
-            );
+                )
+                .subscribe();
         }
 
-        function saveData() {
-            if (!currentUser || !isConnected) {
-                showToast('Cannot save: Not connected to Firebase');
-                return;
-            }
-
-            const updates = {};
-            deliveries.forEach(d => {
-                const id = d.id || Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                updates[id] = {
-                    requestedDate: d.requestedDate,
-                    location: d.location,
-                    loadDate: d.loadDate,
-                    unloadDate: d.unloadDate,
-                    lorryDetails: d.lorryDetails,
-                    unitPrice: d.unitPrice,
-                    doNo: d.doNo,
-                    poNo: d.poNo,
-                    remark: d.remark || '',
-                    pdfDoCopy: d.pdfDoCopy || null,
-                    pdfDoName: d.pdfDoName || null,
-                    pdfPoCopy: d.pdfPoCopy || null,
-                    pdfPoName: d.pdfPoName || null
-                };
-            });
-
-            database.ref('deliveries').set(updates).catch(error => {
-                console.error('Error saving to Firebase:', error);
-                showToast('Error saving: ' + error.message);
-            });
-        }
-
+        // RENDER TABLE
         function renderTable() {
-            const newBody = document.getElementById('newBody');
-            const historyBody = document.getElementById('historyBody');
-            const emptyNew = document.getElementById('emptyNew');
-            const emptyHistory = document.getElementById('emptyHistory');
+            const newDeliveries = deliveries.filter(d => !d.do_no);
+            const historyDeliveries = deliveries.filter(d => d.do_no);
 
-            newBody.innerHTML = '';
-            historyBody.innerHTML = '';
+            // NEW TAB
+            let newHTML = '';
+            if (newDeliveries.length === 0) {
+                document.getElementById('loadingNew').style.display = 'none';
+                document.getElementById('newTableWrapper').style.display = 'none';
+                document.getElementById('emptyNew').style.display = 'block';
+            } else {
+                document.getElementById('emptyNew').style.display = 'none';
+                document.getElementById('loadingNew').style.display = 'none';
+                document.getElementById('newTableWrapper').style.display = 'block';
+                
+                newDeliveries.forEach(d => {
+                    newHTML += `
+                        <tr>
+                            <td>${d.date}</td>
+                            <td>${d.location}</td>
+                            <td>${d.lorry}</td>
+                            <td>RM${parseFloat(d.price).toFixed(2)}</td>
+                            <td><input type="text" value="${d.remark || ''}" style="width:100%;padding:6px;" onchange="updateRemark(${d.id}, this.value)"></td>
+                            <td>
+                                ${currentUser === 'Solid Horizon' ? `
+                                    <button class="btn-small" onclick="editDelivery(${d.id})">Edit</button>
+                                    <button class="btn-small btn-delete" onclick="deleteDelivery(${d.id})">Delete</button>
+                                ` : ''}
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+            document.getElementById('newBody').innerHTML = newHTML;
 
-            const newDeliveries = deliveries.filter(d => !d.doNo && !d.pdfDoCopy);
-            const historyDeliveries = deliveries.filter(d => d.doNo || d.pdfDoCopy);
+            // HISTORY TAB
+            let historyHTML = '';
+            if (historyDeliveries.length === 0) {
+                document.getElementById('loadingHistory').style.display = 'none';
+                document.getElementById('historyTableWrapper').style.display = 'none';
+                document.getElementById('emptyHistory').style.display = 'block';
+            } else {
+                document.getElementById('emptyHistory').style.display = 'none';
+                document.getElementById('loadingHistory').style.display = 'none';
+                document.getElementById('historyTableWrapper').style.display = 'block';
+                
+                historyDeliveries.forEach(d => {
+                    historyHTML += `
+                        <tr>
+                            <td>${d.date}</td>
+                            <td>${d.location}</td>
+                            <td>${d.lorry}</td>
+                            <td>RM${parseFloat(d.price).toFixed(2)}</td>
+                            <td>${d.do_no}</td>
+                            <td>${currentUser === 'Solid Horizon' ? `<button class="btn-small btn-delete" onclick="deleteDelivery(${d.id})">Delete</button>` : ''}</td>
+                        </tr>
+                    `;
+                });
+            }
+            document.getElementById('historyBody').innerHTML = historyHTML;
 
-            emptyNew.style.display = newDeliveries.length === 0 ? 'block' : 'none';
-            emptyHistory.style.display = historyDeliveries.length === 0 ? 'block' : 'none';
-
-            newDeliveries.forEach((d, idx) => {
-                const realIdx = deliveries.indexOf(d);
-                newBody.innerHTML += createNewRow(d, realIdx);
-            });
-
-            historyDeliveries.forEach((d, idx) => {
-                const realIdx = deliveries.indexOf(d);
-                historyBody.innerHTML += createHistoryRow(d, realIdx);
-            });
+            updateStats();
         }
 
-        function createNewRow(d, idx) {
-            const canDelete = currentUser === 'Solid Horizon';
-            const canEditRemark = currentUser === 'Solid Horizon';
-            
-            let remarkDisplay = '';
-            if (canEditRemark) {
-                remarkDisplay = `<div style="display: flex; gap: 6px; align-items: center;">
-                    <input type="text" id="remark_${idx}" value="${d.remark || ''}" placeholder="Enter remark" style="flex: 1;">
-                    <button class="btn-action" style="padding: 4px 6px; font-size: 14px;" onclick="saveRemark(${idx})" title="Save">✓</button>
-                </div>`;
-            } else {
-                remarkDisplay = `<span style="color: #6b7280;">${d.remark || '-'}</span>`;
-            }
-
-            let doCopyDisplay = '';
-            if (currentUser === 'Solid Horizon') {
-                if (d.pdfDoCopy) {
-                    doCopyDisplay = `<a href="#" class="pdf-link" onclick="viewPdf(${idx}, 'do'); return false;">📄 View</a>`;
-                } else {
-                    doCopyDisplay = '-';
-                }
-            } else {
-                if (d.pdfDoCopy) {
-                    doCopyDisplay = `<a href="#" class="pdf-link" onclick="viewPdf(${idx}, 'do'); return false;">📄 View</a>`;
-                    doCopyDisplay += `<br><button class="btn-action btn-delete" style="font-size: 10px; margin-top: 4px;" onclick="deletePdf(${idx}, 'do')">🗑️ Delete</button>`;
-                } else {
-                    doCopyDisplay = `<button class="btn-action" onclick="triggerPdfUpload(${idx}, 'do')">📤 Upload</button>`;
-                }
-            }
-
-            let poCopyDisplay = '';
-            if (d.pdfPoCopy) {
-                poCopyDisplay = `<a href="#" class="pdf-link" onclick="viewPdf(${idx}, 'po'); return false;">📄 View</a>`;
-                if (currentUser === 'Solid Horizon') {
-                    poCopyDisplay += `<br><button class="btn-action btn-delete" style="font-size: 10px; margin-top: 4px;" onclick="deletePdf(${idx}, 'po')">🗑️ Delete</button>`;
-                }
-            } else {
-                poCopyDisplay = currentUser === 'Solid Horizon' ? `<button class="btn-action" onclick="triggerPdfUpload(${idx}, 'po')">📤 Upload</button>` : '-';
-            }
-
-            return `
-                <tr onclick="toggleRowExpand(${idx})" style="cursor: pointer;">
-                    <td style="width: 30px; text-align: center; color: #2563eb; font-weight: 600;" class="expand-arrow-${idx}">▶</td>
-                    <td>${d.requestedDate || '-'}</td>
-                    <td>${d.location}</td>
-                    <td>${d.loadDate || '-'}</td>
-                    <td>${d.lorryDetails || '-'}</td>
-                    <td>${d.unitPrice ? 'RM' + parseFloat(d.unitPrice).toFixed(2) : '-'}</td>
-                    <td>${remarkDisplay}</td>
-                    <td>${d.doNo || '-'}</td>
-                    <td>${doCopyDisplay}</td>
-                    <td>${poCopyDisplay}</td>
-                </tr>
-                <tr id="expand_${idx}" style="display: none; background: #f0fdf4;">
-                    <td colspan="10" style="padding: 16px; color: #6b7280;">
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-                            <div>
-                                <span style="font-weight: 600; color: #334155;">Unload Date:</span>
-                                <div style="color: #475569; margin-top: 4px;">${d.unloadDate || '-'}</div>
-                            </div>
-                            ${canDelete ? `
-                            <div style="display: flex; gap: 8px; align-items: flex-end;">
-                                <button class="btn-action" onclick="editDelivery(${idx})" style="padding: 8px 14px; background: #e0e7ff; color: #4f46e5; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">✎ Edit</button>
-                                <button class="btn-action btn-delete" onclick="deleteDelivery(${idx})" style="padding: 8px 14px; background: #fee2e2; color: #991b1b; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">🗑️ Delete</button>
-                            </div>
-                            ` : ''}
-                        </div>
-                    </td>
-                </tr>
-            `;
-        }
-
-        function createHistoryRow(d, idx) {
-            const canDelete = currentUser === 'Solid Horizon';
-            const canEditRemark = currentUser === 'Solid Horizon';
-            
-            let remarkDisplay = '';
-            if (canEditRemark) {
-                remarkDisplay = `<div style="display: flex; gap: 6px; align-items: center;">
-                    <input type="text" id="remark_${idx}" value="${d.remark || ''}" placeholder="Enter remark" style="flex: 1;">
-                    <button class="btn-action" style="padding: 4px 6px; font-size: 14px;" onclick="saveRemark(${idx})" title="Save">✓</button>
-                </div>`;
-            } else {
-                remarkDisplay = `<span style="color: #6b7280;">${d.remark || '-'}</span>`;
-            }
-
-            let doCopyDisplay = '';
-            if (d.pdfDoCopy) {
-                doCopyDisplay = `<a href="#" class="pdf-link" onclick="viewPdf(${idx}, 'do'); return false;">📄 View</a>`;
-                if (currentUser === 'Solid Horizon') {
-                    doCopyDisplay += `<br><button class="btn-action btn-delete" style="font-size: 10px; margin-top: 4px;" onclick="deletePdf(${idx}, 'do')">🗑️ Delete</button>`;
-                }
-            } else {
-                doCopyDisplay = currentUser === 'Solid Horizon' ? `<button class="btn-action" onclick="triggerPdfUpload(${idx}, 'do')">📤 Upload</button>` : '-';
-            }
-
-            let poCopyDisplay = '';
-            if (currentUser === 'Solid Horizon') {
-                if (d.pdfPoCopy) {
-                    poCopyDisplay = `<a href="#" class="pdf-link" onclick="viewPdf(${idx}, 'po'); return false;">📄 View</a>`;
-                    poCopyDisplay += `<br><button class="btn-action btn-delete" style="font-size: 10px; margin-top: 4px;" onclick="deletePdf(${idx}, 'po')">🗑️ Delete</button>`;
-                } else {
-                    poCopyDisplay = `<button class="btn-action" onclick="triggerPdfUpload(${idx}, 'po')">📤 Upload</button>`;
-                }
-            } else {
-                if (d.pdfPoCopy) {
-                    poCopyDisplay = `<a href="#" class="pdf-link" onclick="viewPdf(${idx}, 'po'); return false;">📄 View</a>`;
-                } else {
-                    poCopyDisplay = '-';
-                }
-            }
-            
-            return `
-                <tr onclick="toggleRowExpand(${idx})" style="cursor: pointer;">
-                    <td style="width: 30px; text-align: center; color: #2563eb; font-weight: 600;" class="expand-arrow-${idx}">▶</td>
-                    <td>${d.requestedDate || '-'}</td>
-                    <td>${d.location}</td>
-                    <td>${d.loadDate || '-'}</td>
-                    <td>${d.lorryDetails || '-'}</td>
-                    <td>${d.unitPrice ? 'RM' + parseFloat(d.unitPrice).toFixed(2) : '-'}</td>
-                    <td>${remarkDisplay}</td>
-                    <td>${d.doNo || '-'}</td>
-                    <td>${doCopyDisplay}</td>
-                    <td>${poCopyDisplay}</td>
-                </tr>
-                <tr id="expand_${idx}" style="display: none; background: #f0fdf4;">
-                    <td colspan="10" style="padding: 16px; color: #6b7280;">
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-                            <div>
-                                <span style="font-weight: 600; color: #334155;">Unload Date:</span>
-                                <div style="color: #475569; margin-top: 4px;">${d.unloadDate || '-'}</div>
-                            </div>
-                            <div>
-                                <span style="font-weight: 600; color: #334155;">PO No:</span>
-                                <div style="color: #475569; margin-top: 4px;">${d.poNo || '-'}</div>
-                            </div>
-                            ${canDelete ? `
-                            <div style="display: flex; gap: 8px; align-items: flex-end;">
-                                <button class="btn-action btn-delete" onclick="deleteDelivery(${idx})" style="padding: 8px 14px; background: #fee2e2; color: #991b1b; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">🗑️ Delete</button>
-                            </div>
-                            ` : ''}
-                        </div>
-                    </td>
-                </tr>
-            `;
-        }
-
-        function toggleRowExpand(idx) {
-            const expandRow = document.getElementById(`expand_${idx}`);
-            const arrow = document.querySelector(`.expand-arrow-${idx}`);
-            if (expandRow && arrow) {
-                const isHidden = expandRow.style.display === 'none';
-                expandRow.style.display = isHidden ? 'table-row' : 'none';
-                arrow.style.transform = isHidden ? 'rotate(90deg)' : 'rotate(0deg)';
-            }
-        }
-
+        // UPDATE STATS
         function updateStats() {
-            const total = deliveries.length;
-            const pending = deliveries.filter(d => !d.doNo && !d.pdfDoCopy).length;
-            const delivered = deliveries.filter(d => d.doNo || d.pdfDoCopy).length;
-
-            document.getElementById('totalDeliveries').textContent = total;
-            document.getElementById('pendingCount').textContent = pending;
-            document.getElementById('deliveredCount').textContent = delivered;
+            document.getElementById('totalCount').textContent = deliveries.length;
+            document.getElementById('newCount').textContent = deliveries.filter(d => !d.do_no).length;
+            document.getElementById('historyCount').textContent = deliveries.filter(d => d.do_no).length;
         }
 
-        // Modal functions
+        // MODAL
         function openAddModal() {
-            editingIndex = null;
-            document.querySelector('#addModal h2').textContent = 'Add Delivery';
-            document.getElementById('requestedDate').value = new Date().toISOString().split('T')[0];
-            document.getElementById('location').value = '';
-            document.getElementById('loadDate').value = '';
-            document.getElementById('unloadDate').value = '';
-            document.getElementById('lorryDetails').value = '';
-            document.getElementById('unitPrice').value = '';
-            document.getElementById('doNo').value = '';
-            document.getElementById('poNo').value = '';
+            editIdx = null;
+            document.getElementById('modalTitle').textContent = 'Add Delivery';
+            document.getElementById('f_date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('f_location').value = '';
+            document.getElementById('f_loadDate').value = '';
+            document.getElementById('f_unloadDate').value = '';
+            document.getElementById('f_lorry').value = '';
+            document.getElementById('f_price').value = '';
+            document.getElementById('f_doNo').value = '';
+            document.getElementById('f_remark').value = '';
             document.getElementById('addModal').classList.add('active');
         }
 
         function closeAddModal() {
             document.getElementById('addModal').classList.remove('active');
-            editingIndex = null;
         }
 
-        function saveDelivery(e) {
-            e.preventDefault();
-
-            const delivery = {
-                id: editingIndex !== null ? deliveries[editingIndex].id : Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-                requestedDate: document.getElementById('requestedDate').value,
-                location: document.getElementById('location').value,
-                loadDate: document.getElementById('loadDate').value,
-                unloadDate: document.getElementById('unloadDate').value,
-                lorryDetails: document.getElementById('lorryDetails').value,
-                unitPrice: document.getElementById('unitPrice').value,
-                doNo: document.getElementById('doNo').value,
-                poNo: document.getElementById('poNo').value,
-                remark: editingIndex !== null ? deliveries[editingIndex].remark : ''
-            };
-
-            if (editingIndex !== null) {
-                deliveries[editingIndex] = { ...deliveries[editingIndex], ...delivery };
-                showToast('Delivery updated');
-            } else {
-                deliveries.push(delivery);
-                showToast('Delivery added');
-            }
-
-            editingIndex = null;
-            saveData();
-            closeAddModal();
-        }
-
-        function editDelivery(idx) {
+        async function editDelivery(id) {
             if (currentUser !== 'Solid Horizon') return;
-            editingIndex = idx;
-            const d = deliveries[idx];
-            document.querySelector('#addModal h2').textContent = 'Edit Delivery';
-            document.getElementById('requestedDate').value = d.requestedDate || '';
-            document.getElementById('location').value = d.location || '';
-            document.getElementById('loadDate').value = d.loadDate || '';
-            document.getElementById('unloadDate').value = d.unloadDate || '';
-            document.getElementById('lorryDetails').value = d.lorryDetails || '';
-            document.getElementById('unitPrice').value = d.unitPrice || '';
-            document.getElementById('doNo').value = d.doNo || '';
-            document.getElementById('poNo').value = d.poNo || '';
+            const d = deliveries.find(x => x.id === id);
+            if (!d) return;
+            
+            editIdx = id;
+            document.getElementById('modalTitle').textContent = 'Edit Delivery';
+            document.getElementById('f_date').value = d.date;
+            document.getElementById('f_location').value = d.location;
+            document.getElementById('f_loadDate').value = d.load_date;
+            document.getElementById('f_unloadDate').value = d.unload_date || '';
+            document.getElementById('f_lorry').value = d.lorry;
+            document.getElementById('f_price').value = d.price;
+            document.getElementById('f_doNo').value = d.do_no || '';
+            document.getElementById('f_remark').value = d.remark || '';
             document.getElementById('addModal').classList.add('active');
         }
 
-        function deleteDelivery(idx) {
-            if (currentUser !== 'Solid Horizon') return;
-            if (confirm('Are you sure you want to delete this delivery?')) {
-                deliveries.splice(idx, 1);
-                saveData();
-                showToast('Delivery deleted');
-            }
-        }
-
-        function saveRemark(idx) {
-            const input = document.getElementById(`remark_${idx}`);
-            if (input) {
-                deliveries[idx].remark = input.value;
-                saveData();
-                showToast('Remark saved');
-            }
-        }
-
-        // Search and Filter
-        function performSearch() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const newBody = document.getElementById('newBody');
-            const historyBody = document.getElementById('historyBody');
-            
-            const newDeliveries = deliveries.filter(d => !d.doNo && !d.pdfDoCopy);
-            const historyDeliveries = deliveries.filter(d => d.doNo || d.pdfDoCopy);
-
-            newBody.innerHTML = '';
-            historyBody.innerHTML = '';
-
-            const newFiltered = newDeliveries.filter(d => 
-                (d.requestedDate || '').toLowerCase().includes(searchTerm) ||
-                (d.location || '').toLowerCase().includes(searchTerm) ||
-                (d.loadDate || '').toLowerCase().includes(searchTerm) ||
-                (d.unloadDate || '').toLowerCase().includes(searchTerm) ||
-                (d.lorryDetails || '').toLowerCase().includes(searchTerm) ||
-                (d.unitPrice || '').toLowerCase().includes(searchTerm) ||
-                (d.remark || '').toLowerCase().includes(searchTerm) ||
-                (d.poNo || '').toLowerCase().includes(searchTerm)
-            );
-
-            const historyFiltered = historyDeliveries.filter(d =>
-                (d.requestedDate || '').toLowerCase().includes(searchTerm) ||
-                (d.location || '').toLowerCase().includes(searchTerm) ||
-                (d.loadDate || '').toLowerCase().includes(searchTerm) ||
-                (d.unloadDate || '').toLowerCase().includes(searchTerm) ||
-                (d.lorryDetails || '').toLowerCase().includes(searchTerm) ||
-                (d.unitPrice || '').toLowerCase().includes(searchTerm) ||
-                (d.doNo || '').toLowerCase().includes(searchTerm) ||
-                (d.poNo || '').toLowerCase().includes(searchTerm) ||
-                (d.remark || '').toLowerCase().includes(searchTerm)
-            );
-
-            document.getElementById('emptyNew').style.display = newFiltered.length === 0 && searchTerm ? 'block' : 'none';
-            document.getElementById('emptyHistory').style.display = historyFiltered.length === 0 && searchTerm ? 'block' : 'none';
-
-            newFiltered.forEach(d => {
-                const realIdx = deliveries.indexOf(d);
-                newBody.innerHTML += createNewRow(d, realIdx);
-            });
-
-            historyFiltered.forEach(d => {
-                const realIdx = deliveries.indexOf(d);
-                historyBody.innerHTML += createHistoryRow(d, realIdx);
-            });
-        }
-
-        function resetSearch() {
-            document.getElementById('searchInput').value = '';
-            renderTable();
-            showToast('Search cleared');
-        }
-
-        // Tab switching
-        function switchTab(e, tabName) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            e.target.classList.add('active');
-            document.getElementById(tabName).classList.add('active');
-        }
-
-        // Smart Paste
-        function openSmartPasteModal() {
-            document.getElementById('smartPasteModal').classList.add('active');
-            document.getElementById('pasteArea').value = '';
-        }
-
-        function closeSmartPasteModal() {
-            document.getElementById('smartPasteModal').classList.remove('active');
-        }
-
-        function handleSmartPaste(e) {
+        async function saveDelivery(e) {
             e.preventDefault();
-            const text = document.getElementById('pasteArea').value;
-            const parsed = parsePaste(text);
             
-            if (parsed) {
-                deliveries.push(parsed);
-                saveData();
-                showToast('Delivery added from paste');
-                closeSmartPasteModal();
-            } else {
-                showToast('Could not parse message');
-            }
-        }
+            const data = {
+                date: document.getElementById('f_date').value,
+                location: document.getElementById('f_location').value,
+                load_date: document.getElementById('f_loadDate').value,
+                unload_date: document.getElementById('f_unloadDate').value,
+                lorry: document.getElementById('f_lorry').value,
+                price: document.getElementById('f_price').value,
+                do_no: document.getElementById('f_doNo').value,
+                remark: document.getElementById('f_remark').value
+            };
 
-        function parsePaste(text) {
             try {
-                const lines = text.split('\n').filter(l => l.trim());
-                const entry = {
-                    id: Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-                    requestedDate: new Date().toISOString().split('T')[0],
-                    location: '',
-                    loadDate: '',
-                    unloadDate: '',
-                    lorryDetails: '',
-                    unitPrice: '',
-                    poNo: '',
-                    doNo: '',
-                    remark: ''
-                };
-
-                for (let i = 0; i < lines.length; i++) {
-                    const line = lines[i];
-                    processLine(line, entry, lines, i);
-                }
-
-                if (entry.location && entry.lorryDetails) {
-                    return entry;
-                }
-                return null;
-            } catch (e) {
-                console.error(e);
-                return null;
-            }
-        }
-
-        function processLine(line, entry, allLines, lineIndex) {
-            const lower = line.toLowerCase();
-
-            if (lower.includes('location') || lower.includes('pelanggan')) {
-                entry.location = line.replace(/.*[:]/g, '').trim();
-            }
-            if (lower.includes('load') || lower.includes('pickup')) {
-                const dates = extractDates(line);
-                if (dates.length > 0) entry.loadDate = dates[0];
-            }
-            if (lower.includes('unload') || lower.includes('drop')) {
-                const dates = extractDates(line);
-                if (dates.length > 0) entry.unloadDate = dates[0];
-            }
-            if (lower.includes('qty') || lower.includes('quantity') || lower.includes('unit')) {
-                const match = line.match(/(\d+)\s*(x|@|\*)/i);
-                if (match) entry.lorryDetails = match[0];
-            }
-            if (lower.includes('price') || lower.includes('rate')) {
-                const match = line.match(/RM?\s?([\d,]+\.?\d*)/i);
-                if (match) entry.unitPrice = match[1].replace(',', '');
-            }
-            if (lower.includes('po') || lower.includes('po no')) {
-                entry.poNo = line.split(':')[1]?.trim() || '';
-            }
-            if (lower.includes('container') || lower.includes('lorry') || lower.includes('truck')) {
-                entry.lorryDetails = line.replace(/.*[:]/g, '').trim();
-            }
-        }
-
-        function extractDates(str) {
-            const dates = [];
-            const dateRegex = /(\d{1,2}[-\/]?\d{1,2}[-\/]?\d{2,4}|[A-Za-z]+\s+\d{1,2})/g;
-            const matches = str.match(dateRegex) || [];
-            
-            for (let match of matches) {
-                const date = parseDate(match);
-                if (date) dates.push(date);
-            }
-            
-            return dates;
-        }
-
-        function parseDate(dateStr) {
-            const date = new Date(dateStr);
-            if (isNaN(date)) return null;
-            return date.toISOString().split('T')[0];
-        }
-
-        // PDF Management
-        function triggerPdfUpload(idx, type) {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = 'application/pdf';
-            input.onchange = (e) => handlePdfUpload(idx, type, e);
-            input.click();
-        }
-
-        function handlePdfUpload(idx, type, event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const base64 = e.target.result;
-                
-                if (type === 'do') {
-                    deliveries[idx].pdfDoCopy = base64;
-                    deliveries[idx].pdfDoName = file.name;
-                } else {
-                    deliveries[idx].pdfPoCopy = base64;
-                    deliveries[idx].pdfPoName = file.name;
-                }
-                
-                saveData();
-                showToast(type === 'do' ? 'DO Copy uploaded' : 'PO Copy uploaded');
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function viewPdf(idx, type) {
-            const pdfData = type === 'do' ? deliveries[idx].pdfDoCopy : deliveries[idx].pdfPoCopy;
-            if (!pdfData) return;
-
-            currentPdfData = pdfData;
-            currentPdfName = type === 'do' ? (deliveries[idx].pdfDoName || 'document.pdf') : (deliveries[idx].pdfPoName || 'document.pdf');
-            
-            document.getElementById('pdfFrame').src = pdfData;
-            document.getElementById('pdfViewerModal').classList.add('active');
-        }
-
-        function closePdfViewer() {
-            document.getElementById('pdfViewerModal').classList.remove('active');
-            document.getElementById('pdfFrame').src = '';
-        }
-
-        function downloadCurrentPdf() {
-            if (!currentPdfData) return;
-            const link = document.createElement('a');
-            link.href = currentPdfData;
-            link.download = currentPdfName;
-            link.click();
-        }
-
-        function deletePdf(idx, type) {
-            if (type === 'do') {
-                deliveries[idx].pdfDoCopy = null;
-                deliveries[idx].pdfDoName = null;
-            } else {
-                deliveries[idx].pdfPoCopy = null;
-                deliveries[idx].pdfPoName = null;
-            }
-            saveData();
-            renderTable();
-            showToast('PDF deleted');
-        }
-
-        // Export/Import
-        function exportData() {
-            const dataToExport = {
-                deliveries: deliveries,
-                exportDate: new Date().toLocaleString()
-            };
-            
-            const jsonString = JSON.stringify(dataToExport, null, 2);
-            const blob = new Blob([jsonString], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `delivery_data_${Date.now()}.json`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-            showToast('Data exported successfully');
-        }
-
-        function triggerImport() {
-            document.getElementById('importFile').click();
-        }
-
-        function importData(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const content = e.target.result;
-                    const data = JSON.parse(content);
+                if (editIdx) {
+                    // UPDATE
+                    const { error } = await supabase
+                        .from('deliveries')
+                        .update(data)
+                        .eq('id', editIdx);
                     
-                    if (data.deliveries && Array.isArray(data.deliveries)) {
-                        deliveries = data.deliveries;
-                        saveData();
-                        showToast(`Data imported! Loaded ${deliveries.length} deliveries`);
-                    } else {
-                        showToast('Invalid file format');
-                    }
-                } catch (error) {
-                    showToast('Error importing file');
-                    console.error(error);
+                    if (error) throw error;
+                    showToast('Updated');
+                } else {
+                    // INSERT
+                    const { error } = await supabase
+                        .from('deliveries')
+                        .insert([data]);
+                    
+                    if (error) throw error;
+                    showToast('Added');
+                }
+                
+                closeAddModal();
+                await loadData();
+            } catch (err) {
+                console.error(err);
+                showToast('Error: ' + err.message);
+            }
+        }
+
+        async function deleteDelivery(id) {
+            if (currentUser !== 'Solid Horizon') return;
+            if (!confirm('Delete?')) return;
+
+            try {
+                const { error } = await supabase
+                    .from('deliveries')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) throw error;
+                showToast('Deleted');
+                await loadData();
+            } catch (err) {
+                showToast('Error: ' + err.message);
+            }
+        }
+
+        async function updateRemark(id, val) {
+            if (currentUser !== 'Solid Horizon') return;
+
+            try {
+                await supabase
+                    .from('deliveries')
+                    .update({ remark: val })
+                    .eq('id', id);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // SEARCH
+        function filterTable() {
+            const term = document.getElementById('searchInput').value.toLowerCase();
+            document.querySelectorAll('#newBody tr, #historyBody tr').forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(term) ? '' : 'none';
+            });
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            filterTable();
+        }
+
+        // TABS
+        function switchTab(e, tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            e.target.classList.add('active');
+            document.getElementById(tab + 'Tab').classList.add('active');
+        }
+
+        // EXPORT
+        function exportData() {
+            const data = JSON.stringify({deliveries, exportDate: new Date().toLocaleString()}, null, 2);
+            const blob = new Blob([data], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'delivery_data_' + Date.now() + '.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Exported');
+        }
+
+        // IMPORT
+        async function importData(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                try {
+                    const data = JSON.parse(event.target.result);
+                    const toInsert = data.deliveries.map(d => ({
+                        date: d.date,
+                        location: d.location,
+                        load_date: d.load_date || d.loadDate,
+                        unload_date: d.unload_date || d.unloadDate,
+                        lorry: d.lorry,
+                        price: d.price,
+                        do_no: d.do_no || d.doNo,
+                        remark: d.remark
+                    }));
+
+                    const { error } = await supabase
+                        .from('deliveries')
+                        .insert(toInsert);
+
+                    if (error) throw error;
+                    showToast(`Imported ${toInsert.length} deliveries`);
+                    await loadData();
+                } catch (err) {
+                    showToast('Import error: ' + err.message);
                 }
             };
             reader.readAsText(file);
-            event.target.value = '';
         }
 
-        // Toast notification
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2000);
+        // TOAST
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
         }
-
-        // ESC key to close modals
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                const addModal = document.getElementById('addModal');
-                const smartPasteModal = document.getElementById('smartPasteModal');
-                const pdfViewerModal = document.getElementById('pdfViewerModal');
-                
-                if (addModal.classList.contains('active')) closeAddModal();
-                if (smartPasteModal.classList.contains('active')) closeSmartPasteModal();
-                if (pdfViewerModal.classList.contains('active')) closePdfViewer();
-            }
-        });
-
-        // Set today's date as default
-        window.addEventListener('load', () => {
-            const today = new Date().toISOString().split('T')[0];
-            const requestedDateInput = document.getElementById('requestedDate');
-            if (requestedDateInput) requestedDateInput.value = today;
-        });
     </script>
 </body>
 </html>
