@@ -1,0 +1,1787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solid Horizon & Chan A Yab Delivery Tracking</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-analytics.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: #f1f5f9;
+            color: #334155;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Login Screen */
+        .login-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a8c 100%);
+        }
+
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .login-container h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #1e3a5f;
+        }
+
+        .login-container p {
+            color: #6b7280;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .login-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn-login {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-solid {
+            background: #1e3a5f;
+            color: white;
+        }
+
+        .btn-solid:hover {
+            background: #152d47;
+        }
+
+        .btn-chan {
+            background: #e5e7eb;
+            color: #1f2937;
+        }
+
+        .btn-chan:hover {
+            background: #d1d5db;
+        }
+
+        .password-input {
+            margin-top: 12px;
+            display: none;
+        }
+
+        .password-input input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .password-buttons {
+            display: flex;
+            gap: 8px;
+            display: none;
+        }
+
+        .password-buttons button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .btn-confirm {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-cancel {
+            background: #e5e7eb;
+            color: #1f2937;
+        }
+
+        .main-content {
+            display: none;
+        }
+
+        .main-content.active {
+            display: block;
+        }
+
+        header {
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+            color: white;
+            padding: 28px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .user-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .btn-logout {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-number {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            opacity: 0.8;
+            font-size: 12px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(20, 184, 166, 0.4);
+        }
+
+        .btn-primary:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
+        }
+
+        .btn-tertiary {
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(100, 116, 139, 0.3);
+        }
+
+        .btn-tertiary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(100, 116, 139, 0.4);
+        }
+
+        .btn-tertiary:hover {
+            background: #d1d5db;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 32px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: #374151;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            justify-content: flex-end;
+        }
+
+        .table-wrapper {
+            background: #f1f5f9;
+            border-radius: 12px;
+            overflow-x: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            background: #e2e8f0;
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 1px solid #cbd5e1;
+            color: #475569;
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 12px;
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #334155;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-in-transit {
+            background: #fce7f3;
+            color: #831843;
+        }
+
+        .status-delivered {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .edit-cell input {
+            margin: 0;
+            padding: 4px;
+            font-size: 12px;
+            border: 1px solid #10b981;
+        }
+
+        .actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            padding: 4px 8px;
+            font-size: 11px;
+            border-radius: 4px;
+            background: #e5e7eb;
+            color: #1f2937;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-action:hover {
+            background: #d1d5db;
+        }
+
+        .btn-delete {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .btn-delete:hover {
+            background: #fecaca;
+        }
+
+        .pdf-link {
+            color: #6366f1;
+            text-decoration: none;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .pdf-link:hover {
+            text-decoration: underline;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #9ca3af;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .tab {
+            padding: 12px 16px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            color: #6b7280;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            color: #1e3a5f;
+            border-bottom-color: #1e3a5f;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 6px;
+            display: none;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.show {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        .info-box {
+            background: #e0f2fe;
+            border-left: 4px solid #0284c7;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #0c4a6e;
+            margin-bottom: 16px;
+        }
+
+        .pdf-modal {
+            max-width: 600px;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+
+            .header-stats {
+                width: 100%;
+                justify-content: space-around;
+            }
+
+            table {
+                font-size: 11px;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+
+            .modal-content {
+                max-width: 95vw;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-container">
+            <h1>📦 Delivery Tracking</h1>
+            <p>Solid Horizon & Chan A Yab</p>
+            <div class="login-buttons">
+                <button class="btn-login btn-solid" onclick="selectSolid()">🔐 Solid Horizon (Password)</button>
+                <button class="btn-login btn-chan" onclick="selectChan()">👥 Chan A Yab (Open Access)</button>
+            </div>
+            <div class="password-input" id="passwordInput">
+                <input type="password" id="passwordField" placeholder="Enter password">
+                <div class="password-buttons" id="passwordButtons">
+                    <button class="btn-confirm" onclick="verifyPassword()">Confirm</button>
+                    <button class="btn-cancel" onclick="cancelPassword()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="mainContent" class="main-content">
+        <div class="container">
+            <header>
+                <div>
+                    <h1>📦 Solid Horizon & Chan A Yab Delivery Tracking</h1>
+                </div>
+                <div class="header-right">
+                    <div class="header-stats">
+                        <div class="stat">
+                            <div class="stat-number" id="totalDeliveries">0</div>
+                            <div class="stat-label">Total</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-number" id="pendingCount">0</div>
+                            <div class="stat-label">New</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-number" id="deliveredCount">0</div>
+                            <div class="stat-label">History</div>
+                        </div>
+                    </div>
+                    <div class="user-badge">👤 <span id="userDisplay">User</span></div>
+                    <button class="btn-logout" onclick="logout()">Logout</button>
+                </div>
+            </header>
+
+            <div class="controls">
+                <div style="display: flex; gap: 12px; align-items: center; flex: 1; max-width: 500px;">
+                    <div style="position: relative; flex: 1;">
+                        <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 16px;">🔍</span>
+                        <input type="text" id="searchInput" placeholder="Search by keyword..." onkeyup="performSearch()" style="width: 100%; padding: 12px 12px 12px 40px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; background: white;">
+                    </div>
+                    <button style="padding: 12px 18px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; white-space: nowrap; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); transition: all 0.2s;" onclick="resetSearch()" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(59, 130, 246, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(59, 130, 246, 0.3)';">🔄 Reset</button>
+                </div>
+                <button style="padding: 12px 20px; background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; white-space: nowrap; box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3); transition: all 0.2s;" id="addButton" onclick="openAddModal()" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(20, 184, 166, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(20, 184, 166, 0.3)';"> + New</button>
+                <button style="padding: 12px 20px; background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; white-space: nowrap; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3); transition: all 0.2s;" id="pasteButton" onclick="openSmartPasteModal()" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(124, 58, 237, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(124, 58, 237, 0.3)';"> 📱 Paste</button>
+                <button style="padding: 12px 18px; background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; white-space: nowrap; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3); transition: all 0.2s;" onclick="exportData()" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(34, 197, 94, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(34, 197, 94, 0.3)';">📥 Export</button>
+                <button style="padding: 12px 18px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; white-space: nowrap; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3); transition: all 0.2s;" onclick="triggerImport()" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(217, 119, 6, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(217, 119, 6, 0.3)';">📤 Import</button>
+                <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab(event, 'new')">New Deliveries</button>
+                <button class="tab" onclick="switchTab(event, 'history')">Delivery History</button>
+            </div>
+
+            <!-- New Deliveries Tab -->
+            <div id="new" class="tab-content active">
+                <div class="table-wrapper">
+                    <table id="newTable">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Requested Date</th>
+                                <th>Location</th>
+                                <th>Load Date</th>
+                                <th>Lorry Details</th>
+                                <th>Unit Price</th>
+                                <th>Remark</th>
+                                <th>DO NO.</th>
+                                <th>DO Copy</th>
+                                <th>PO Copy</th>
+                            </tr>
+                        </thead>
+                        <tbody id="newBody">
+                        </tbody>
+                    </table>
+                    <div id="emptyNew" class="empty-state">No new deliveries. Start by adding a new delivery.</div>
+                </div>
+            </div>
+
+            <!-- History Tab -->
+            <div id="history" class="tab-content">
+                <div class="table-wrapper">
+                    <table id="historyTable">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Requested Date</th>
+                                <th>Location</th>
+                                <th>Load Date</th>
+                                <th>Lorry Details</th>
+                                <th>Unit Price</th>
+                                <th>Remark</th>
+                                <th>DO NO.</th>
+                                <th>DO Copy</th>
+                                <th>PO Copy</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyBody">
+                        </tbody>
+                    </table>
+                    <div id="emptyHistory" class="empty-state">No completed deliveries yet.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <h2>Add New Delivery</h2>
+            <form onsubmit="saveDelivery(event)">
+                <div class="form-group">
+                    <label>Requested Date</label>
+                    <input type="date" id="requestedDate">
+                </div>
+                <div class="form-group">
+                    <label>Location *</label>
+                    <input type="text" id="location" required>
+                </div>
+                <div class="form-group">
+                    <label>Load Date</label>
+                    <input type="date" id="loadDate">
+                </div>
+                <div class="form-group">
+                    <label>Unload Date</label>
+                    <input type="date" id="unloadDate">
+                </div>
+                <div class="form-group">
+                    <label>Lorry Details</label>
+                    <input type="text" id="lorryDetails" placeholder="e.g., 3-Ton Lorry, License ABC1234">
+                </div>
+                <div class="form-group">
+                    <label>Unit Price</label>
+                    <input type="number" id="unitPrice" step="0.01" placeholder="e.g., 500.00">
+                </div>
+                <div class="form-group">
+                    <label>DO NO.</label>
+                    <input type="text" id="doNo">
+                </div>
+                <div class="form-group">
+                    <label>PO NO. (for history)</label>
+                    <input type="text" id="poNo">
+                </div>
+                <div class="form-group">
+                    <label>PDF Link (Dropbox/Google Drive)</label>
+                    <input type="url" id="pdfLink" placeholder="https://...">
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-tertiary" onclick="closeAddModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Delivery</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Smart Paste Modal -->
+    <div id="smartPasteModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <h2>📱 WhatsApp Smart Paste Parser</h2>
+            <div class="info-box">
+                Paste WhatsApp delivery confirmation messages. The parser will extract all delivery details automatically.
+            </div>
+            <div id="pasteInputArea">
+                <div class="form-group">
+                    <label>Paste Delivery Text *</label>
+                    <textarea id="pasteInput" placeholder="Paste your WhatsApp delivery confirmation here..." style="font-family: monospace; font-size: 12px; min-height: 120px;"></textarea>
+                </div>
+                <div style="text-align: right;">
+                    <button type="button" class="btn-primary" onclick="parseAndShowPreview()">🔍 Parse & Preview</button>
+                </div>
+            </div>
+            <div id="previewArea" style="display: none;">
+                <div style="background: #f9fafb; padding: 16px; border-radius: 6px; margin-bottom: 16px;">
+                    <table style="width: 100%; font-size: 13px;">
+                        <tbody id="previewTable">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-tertiary" onclick="backToPasteInput()">Back</button>
+                    <button type="button" class="btn-tertiary" onclick="closeSmartPasteModal()">Cancel</button>
+                    <button type="button" class="btn-primary" onclick="confirmParsedEntry()">✓ Confirm & Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF Viewer Modal -->
+    <div id="pdfModal" class="modal">
+        <div class="modal-content pdf-modal" style="max-width: 900px; max-height: 90vh; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h2 style="margin: 0;">📄 PDF Document</h2>
+                <button class="btn-tertiary" onclick="closePdfModal()" style="padding: 6px 12px;">✕ Close</button>
+            </div>
+            <p id="pdfInfo" style="font-size: 13px; color: #6b7280; margin-bottom: 8px;"></p>
+            <div style="flex: 1; overflow: hidden; border: 1px solid #e5e7eb; border-radius: 6px; background: white; margin-bottom: 12px;">
+                <iframe id="pdfViewer" style="width: 100%; height: 100%; border: none;" frameborder="0"></iframe>
+            </div>
+            <div style="text-align: right;">
+                <a id="pdfDownloadLink" href="#" download class="btn-primary" style="display: inline-block; padding: 10px 20px; text-decoration: none;">⬇️ Download PDF</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAqLRAj-RQWyrt9ci9iVKptds9mvAGUnOY",
+            authDomain: "solid-cay-delivery-tracking.firebaseapp.com",
+            databaseURL: "https://solid-cay-delivery-tracking-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "solid-cay-delivery-tracking",
+            storageBucket: "solid-cay-delivery-tracking.firebasestorage.app",
+            messagingSenderId: "333775516752",
+            appId: "1:333775516752:web:2af6651b67c03c126f0d55",
+            measurementId: "G-EBYHKGL8LF"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const analytics = firebase.analytics();
+
+        // Global variables
+        let currentUser = null;
+        let deliveries = [];
+        let firebaseListener = null;
+        let deliveries = [];
+        let currentUser = null;
+        let editingIndex = null;
+
+        // Authentication
+        function selectSolid() {
+            document.getElementById('passwordInput').style.display = 'block';
+            document.getElementById('passwordButtons').style.display = 'flex';
+            document.getElementById('passwordField').focus();
+        }
+
+        function selectChan() {
+            currentUser = 'Chan A Yab';
+            showDashboard();
+        }
+
+        function verifyPassword() {
+            const password = document.getElementById('passwordField').value;
+            if (password === '1234') { // Simple password - change as needed
+                currentUser = 'Solid Horizon';
+                showDashboard();
+            } else {
+                alert('Incorrect password');
+                document.getElementById('passwordField').value = '';
+            }
+        }
+
+        function cancelPassword() {
+            document.getElementById('passwordInput').style.display = 'none';
+            document.getElementById('passwordButtons').style.display = 'none';
+            document.getElementById('passwordField').value = '';
+        }
+
+        function showDashboard() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainContent').classList.add('active');
+            document.getElementById('userDisplay').textContent = currentUser;
+            document.getElementById('addButton').style.display = currentUser === 'Solid Horizon' ? 'block' : 'none';
+            document.getElementById('pasteButton').style.display = currentUser === 'Solid Horizon' ? 'block' : 'none';
+            loadData();
+            renderTable();
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                currentUser = null;
+                document.getElementById('loginScreen').style.display = 'flex';
+                document.getElementById('mainContent').classList.remove('active');
+                document.getElementById('passwordInput').style.display = 'none';
+                document.getElementById('passwordField').value = '';
+            }
+        }
+
+        // Data Management
+        function loadData() {
+            // Remove old localStorage listener if exists
+            if (firebaseListener) {
+                firebaseListener();
+            }
+            
+            // Listen to Firebase Realtime Database for changes
+            firebaseListener = database.ref('deliveries').on('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    // Convert Firebase object to array
+                    deliveries = Object.keys(data).map(key => ({
+                        ...data[key],
+                        id: key
+                    }));
+                } else {
+                    deliveries = [];
+                }
+                renderTable();
+                updateStats();
+            }, (error) => {
+                console.error('Firebase error:', error);
+                showToast('Error loading data from Firebase');
+            });
+        }
+
+        function saveData() {
+            if (!currentUser) return;
+            
+            // Save to Firebase
+            const deliveriesRef = database.ref('deliveries');
+            const updates = {};
+            
+            deliveries.forEach(d => {
+                const id = d.id || Date.now() + Math.random();
+                updates[id] = d;
+            });
+            
+            deliveriesRef.set(updates).catch(error => {
+                console.error('Error saving to Firebase:', error);
+                showToast('Error saving data');
+            });
+            
+            updateStats();
+        }
+
+        function renderTable() {
+            const newBody = document.getElementById('newBody');
+            const historyBody = document.getElementById('historyBody');
+            const emptyNew = document.getElementById('emptyNew');
+            const emptyHistory = document.getElementById('emptyHistory');
+
+            newBody.innerHTML = '';
+            historyBody.innerHTML = '';
+
+            // Move to history if DO NO is filled OR DO Copy PDF is uploaded
+            const newDeliveries = deliveries.filter(d => !d.doNo && !d.pdfDoCopy);
+            const historyDeliveries = deliveries.filter(d => d.doNo || d.pdfDoCopy);
+
+            emptyNew.style.display = newDeliveries.length === 0 ? 'block' : 'none';
+            emptyHistory.style.display = historyDeliveries.length === 0 ? 'block' : 'none';
+
+            newDeliveries.forEach((d, idx) => {
+                const realIdx = deliveries.indexOf(d);
+                newBody.innerHTML += createNewRow(d, realIdx);
+            });
+
+            historyDeliveries.forEach((d, idx) => {
+                const realIdx = deliveries.indexOf(d);
+                historyBody.innerHTML += createHistoryRow(d, realIdx);
+            });
+        }
+
+        function createNewRow(d, idx) {
+            const canDelete = currentUser === 'Solid Horizon';
+            const canEditRemark = currentUser === 'Solid Horizon';
+            
+            // Remark column
+            let remarkDisplay = '';
+            if (canEditRemark) {
+                remarkDisplay = `<div style="display: flex; gap: 6px; align-items: center;">
+                    <input type="text" id="remark_${idx}" value="${d.remark || ''}" placeholder="Enter remark" style="flex: 1;">
+                    <button class="btn-action" style="padding: 4px 6px; font-size: 14px;" onclick="saveRemark(${idx})" title="Save">✓</button>
+                </div>`;
+            } else {
+                remarkDisplay = `<span style="color: #6b7280;">${d.remark || '-'}</span>`;
+            }
+
+            // DO Copy PDF - View only for Solid Horizon
+            let doCopyDisplay = '';
+            if (currentUser === 'Solid Horizon') {
+                if (d.pdfDoCopy) {
+                    doCopyDisplay = `<a href="#" class="pdf-link" onclick="viewPdf(${idx}, 'do'); return false;">📄 View</a>`;
+                } else {
+                    doCopyDisplay = '-';
+                }
+            } else {
+                if (d.pdfDoCopy) {
+                    doCopyDisplay = `<a href="#" class="pdf-link" onclick="viewPdf(${idx}, 'do'); return false;">📄 View</a>`;
+                    doCopyDisplay += `<br><button class="btn-action btn-delete" style="font-size: 10px; margin-top: 4px;" onclick="deletePdf(${idx}, 'do')">🗑️ Delete</button>`;
+                } else {
+                    doCopyDisplay = `<button class="btn-action" onclick="triggerPdfUpload(${idx}, 'do')">📤 Upload</button>`;
+                }
+            }
+
+            // PO Copy PDF - Full access for Solid Horizon, view only for Chan A Yab
+            let poCopyDisplay = '';
+            if (d.pdfPoCopy) {
+                poCopyDisplay = `<a href="#" class="pdf-link" onclick="viewPdf(${idx}, 'po'); return false;">📄 View</a>`;
+                if (currentUser === 'Solid Horizon') {
+                    poCopyDisplay += `<br><button class="btn-action btn-delete" style="font-size: 10px; margin-top: 4px;" onclick="deletePdf(${idx}, 'po')">🗑️ Delete</button>`;
+                }
+            } else {
+                poCopyDisplay = currentUser === 'Solid Horizon' ? `<button class="btn-action" onclick="triggerPdfUpload(${idx}, 'po')">📤 Upload</button>` : '-';
+            }
+
+            return `
+                <tr onclick="toggleRowExpand(${idx})" style="cursor: pointer;">
+                    <td style="width: 30px; text-align: center; color: #2563eb; font-weight: 600;" class="expand-arrow-${idx}">▶</td>
+                    <td>${d.requestedDate || '-'}</td>
+                    <td>${d.location}</td>
+                    <td>${d.loadDate || '-'}</td>
+                    <td>${d.lorryDetails || '-'}</td>
+                    <td>${d.unitPrice ? 'RM' + parseFloat(d.unitPrice).toFixed(2) : '-'}</td>
+                    <td>${remarkDisplay}</td>
+                    <td>${d.doNo || '-'}</td>
+                    <td>${doCopyDisplay}</td>
+                    <td>${poCopyDisplay}</td>
+                </tr>
+                <tr id="expand_${idx}" style="display: none; background: #f0fdf4;">
+                    <td colspan="10" style="padding: 16px; color: #6b7280;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                            <div>
+                                <span style="font-weight: 600; color: #334155;">Unload Date:</span>
+                                <div style="color: #475569; margin-top: 4px;">${d.unloadDate || '-'}</div>
+                            </div>
+                            ${canDelete ? `
+                            <div style="display: flex; gap: 8px; align-items: flex-end;">
+                                <button class="btn-action" onclick="editDelivery(${idx})" style="padding: 8px 14px; background: #e0e7ff; color: #4f46e5; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">✎ Edit</button>
+                                <button class="btn-action btn-delete" onclick="deleteDelivery(${idx})" style="padding: 8px 14px; background: #fee2e2; color: #991b1b; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">🗑️ Delete</button>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
+        function createHistoryRow(d, idx) {
+            const canDelete = currentUser === 'Solid Horizon';
+            const canEditRemark = currentUser === 'Solid Horizon';
+            
+            // Remark column
+            let remarkDisplay = '';
+            if (canEditRemark) {
+                remarkDisplay = `<div style="display: flex; gap: 6px; align-items: center;">
+                    <input type="text" id="remark_${idx}" value="${d.remark || ''}" placeholder="Enter remark" style="flex: 1;">
+                    <button class="btn-action" style="padding: 4px 6px; font-size: 14px;" onclick="saveRemark(${idx})" title="Save">✓</button>
+                </div>`;
+            } else {
+                remarkDisplay = `<span style="color: #6b7280;">${d.remark || '-'}</span>`;
+            }
+
+            // DO Copy PDF - Full access for Solid Horizon
+            let doCopyDisplay = '';
+            if (d.pdfDoCopy) {
+                doCopyDisplay = `<a href="#" class="pdf-link" onclick="viewPdf(${idx}, 'do'); return false;">📄 View</a>`;
+                if (currentUser === 'Solid Horizon') {
+                    doCopyDisplay += `<br><button class="btn-action btn-delete" style="font-size: 10px; margin-top: 4px;" onclick="deletePdf(${idx}, 'do')">🗑️ Delete</button>`;
+                }
+            } else {
+                doCopyDisplay = currentUser === 'Solid Horizon' ? `<button class="btn-action" onclick="triggerPdfUpload(${idx}, 'do')">📤 Upload</button>` : '-';
+            }
+
+            // PO Copy PDF - View only for Chan A Yab
+            let poCopyDisplay = '';
+            if (currentUser === 'Solid Horizon') {
+                if (d.pdfPoCopy) {
+                    poCopyDisplay = `<a href="#" class="pdf-link" onclick="viewPdf(${idx}, 'po'); return false;">📄 View</a>`;
+                    poCopyDisplay += `<br><button class="btn-action btn-delete" style="font-size: 10px; margin-top: 4px;" onclick="deletePdf(${idx}, 'po')">🗑️ Delete</button>`;
+                } else {
+                    poCopyDisplay = `<button class="btn-action" onclick="triggerPdfUpload(${idx}, 'po')">📤 Upload</button>`;
+                }
+            } else {
+                if (d.pdfPoCopy) {
+                    poCopyDisplay = `<a href="#" class="pdf-link" onclick="viewPdf(${idx}, 'po'); return false;">📄 View</a>`;
+                } else {
+                    poCopyDisplay = '-';
+                }
+            }
+            
+            return `
+                <tr onclick="toggleRowExpand(${idx})" style="cursor: pointer;">
+                    <td style="width: 30px; text-align: center; color: #2563eb; font-weight: 600;" class="expand-arrow-${idx}">▶</td>
+                    <td>${d.requestedDate || '-'}</td>
+                    <td>${d.location}</td>
+                    <td>${d.loadDate || '-'}</td>
+                    <td>${d.lorryDetails || '-'}</td>
+                    <td>${d.unitPrice ? 'RM' + parseFloat(d.unitPrice).toFixed(2) : '-'}</td>
+                    <td>${remarkDisplay}</td>
+                    <td>${d.doNo || '-'}</td>
+                    <td>${doCopyDisplay}</td>
+                    <td>${poCopyDisplay}</td>
+                </tr>
+                <tr id="expand_${idx}" style="display: none; background: #f0fdf4;">
+                    <td colspan="10" style="padding: 16px; color: #6b7280;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                            <div>
+                                <span style="font-weight: 600; color: #334155;">Unload Date:</span>
+                                <div style="color: #475569; margin-top: 4px;">${d.unloadDate || '-'}</div>
+                            </div>
+                            <div>
+                                <span style="font-weight: 600; color: #334155;">PO No:</span>
+                                <div style="color: #475569; margin-top: 4px;">${d.poNo || '-'}</div>
+                            </div>
+                            ${canDelete ? `
+                            <div style="display: flex; gap: 8px; align-items: flex-end;">
+                                <button class="btn-action btn-delete" onclick="deleteDelivery(${idx})" style="padding: 8px 14px; background: #fee2e2; color: #991b1b; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">🗑️ Delete</button>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
+        function toggleRowExpand(idx) {
+            const expandRow = document.getElementById(`expand_${idx}`);
+            const arrow = document.querySelector(`.expand-arrow-${idx}`);
+            if (expandRow && arrow) {
+                const isHidden = expandRow.style.display === 'none';
+                expandRow.style.display = isHidden ? 'table-row' : 'none';
+                arrow.style.transform = isHidden ? 'rotate(90deg)' : 'rotate(0deg)';
+                arrow.style.transition = 'transform 0.2s';
+            }
+        }
+
+        function updateDoNo(idx, value) {
+            deliveries[idx].doNo = value;
+            if (value.trim() !== '') {
+                saveData();
+                renderTable();
+                showToast('Delivery moved to history');
+            }
+        }
+
+        function updateStats() {
+            const total = deliveries.length;
+            const pending = deliveries.filter(d => !d.doNo && !d.pdfDoCopy).length;
+            const delivered = deliveries.filter(d => d.doNo || d.pdfDoCopy).length;
+
+            document.getElementById('totalDeliveries').textContent = total;
+            document.getElementById('pendingCount').textContent = pending;
+            document.getElementById('deliveredCount').textContent = delivered;
+        }
+
+        // Modal Controls
+        function openAddModal() {
+            if (currentUser !== 'Solid Horizon') {
+                showToast('Only Solid Horizon can add deliveries');
+                return;
+            }
+            editingIndex = null;
+            clearForm();
+            document.querySelector('#addModal h2').textContent = 'Add New Delivery';
+            document.getElementById('addModal').classList.add('active');
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').classList.remove('active');
+        }
+
+        function openSmartPasteModal() {
+            if (currentUser !== 'Solid Horizon') {
+                showToast('Only Solid Horizon can add deliveries');
+                return;
+            }
+            document.getElementById('smartPasteModal').classList.add('active');
+            document.getElementById('pasteInput').value = '';
+            document.getElementById('pasteInputArea').style.display = 'block';
+            document.getElementById('previewArea').style.display = 'none';
+            parsedEntry = null;
+        }
+
+        function closeSmartPasteModal() {
+            document.getElementById('smartPasteModal').classList.remove('active');
+        }
+
+        function clearForm() {
+            document.getElementById('requestedDate').value = '';
+            document.getElementById('location').value = '';
+            document.getElementById('loadDate').value = '';
+            document.getElementById('unloadDate').value = '';
+            document.getElementById('lorryDetails').value = '';
+            document.getElementById('unitPrice').value = '';
+            document.getElementById('doNo').value = '';
+            document.getElementById('poNo').value = '';
+            document.getElementById('pdfLink').value = '';
+        }
+
+        function saveDelivery(e) {
+            e.preventDefault();
+
+            const delivery = {
+                requestedDate: document.getElementById('requestedDate').value,
+                location: document.getElementById('location').value,
+                loadDate: document.getElementById('loadDate').value,
+                unloadDate: document.getElementById('unloadDate').value,
+                lorryDetails: document.getElementById('lorryDetails').value,
+                unitPrice: document.getElementById('unitPrice').value,
+                doNo: document.getElementById('doNo').value,
+                poNo: document.getElementById('poNo').value,
+                pdfLink: document.getElementById('pdfLink').value,
+                remark: ''
+            };
+
+            if (editingIndex !== null) {
+                // Update existing delivery
+                const d = deliveries[editingIndex];
+                delivery.id = d.id || Date.now();
+                deliveries[editingIndex] = delivery;
+                showToast('Delivery updated');
+            } else {
+                // Add new delivery
+                delivery.id = Date.now() + Math.random().toString(36).substr(2, 9);
+                deliveries.push(delivery);
+                showToast('Delivery added');
+            }
+
+            editingIndex = null;
+            saveData();
+            renderTable();
+            closeAddModal();
+        }
+
+        function editDelivery(idx) {
+            if (currentUser !== 'Solid Horizon') return;
+            editingIndex = idx;
+            const d = deliveries[idx];
+            document.querySelector('#addModal h2').textContent = 'Edit Delivery';
+            document.getElementById('requestedDate').value = d.requestedDate || '';
+            document.getElementById('location').value = d.location || '';
+            document.getElementById('loadDate').value = d.loadDate || '';
+            document.getElementById('unloadDate').value = d.unloadDate || '';
+            document.getElementById('lorryDetails').value = d.lorryDetails || '';
+            document.getElementById('unitPrice').value = d.unitPrice || '';
+            document.getElementById('doNo').value = d.doNo || '';
+            document.getElementById('poNo').value = d.poNo || '';
+            document.getElementById('pdfLink').value = d.pdfLink || '';
+            document.getElementById('addModal').classList.add('active');
+        }
+
+        function deleteDelivery(idx) {
+            if (currentUser !== 'Solid Horizon') return;
+            if (confirm('Are you sure you want to delete this delivery?')) {
+                deliveries.splice(idx, 1);
+                saveData();
+                renderTable();
+                showToast('Delivery deleted');
+            }
+        }
+
+        function triggerPdfUpload(idx, type) {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.pdf';
+            input.onchange = (e) => handlePdfUpload(idx, type, e);
+            input.click();
+        }
+
+        function handlePdfUpload(idx, type, event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const base64Data = e.target.result;
+                if (type === 'do') {
+                    deliveries[idx].pdfDoCopy = base64Data;
+                    deliveries[idx].pdfDoFileName = file.name;
+                } else if (type === 'po') {
+                    deliveries[idx].pdfPoCopy = base64Data;
+                    deliveries[idx].pdfPoFileName = file.name;
+                }
+                saveData();
+                renderTable();
+                showToast(`${type.toUpperCase()} Copy uploaded: ${file.name}`);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function deletePdf(idx, type) {
+            if (confirm(`Delete ${type.toUpperCase()} Copy PDF?`)) {
+                if (type === 'do') {
+                    deliveries[idx].pdfDoCopy = '';
+                    deliveries[idx].pdfDoFileName = '';
+                } else if (type === 'po') {
+                    deliveries[idx].pdfPoCopy = '';
+                    deliveries[idx].pdfPoFileName = '';
+                }
+                saveData();
+                renderTable();
+                showToast(`${type.toUpperCase()} Copy deleted`);
+            }
+        }
+
+        function viewPdf(idx, type) {
+            const d = deliveries[idx];
+            const pdfLink = type === 'do' ? d.pdfDoCopy : d.pdfPoCopy;
+            const fileName = type === 'do' ? d.pdfDoFileName : d.pdfPoFileName;
+            
+            if (pdfLink) {
+                const typeLabel = type === 'do' ? 'DO Copy' : 'PO Copy';
+                document.getElementById('pdfInfo').textContent = `${typeLabel} | DO NO: ${d.doNo || 'N/A'} | Location: ${d.location} | File: ${fileName || 'PDF'}`;
+                document.getElementById('pdfViewer').src = pdfLink;
+                document.getElementById('pdfDownloadLink').href = pdfLink;
+                document.getElementById('pdfDownloadLink').download = fileName || `delivery-${type}-copy.pdf`;
+                document.getElementById('pdfModal').classList.add('active');
+            }
+        }
+
+        function saveRemark(idx) {
+            const input = document.getElementById(`remark_${idx}`);
+            if (input) {
+                deliveries[idx].remark = input.value;
+                saveData();
+                showToast('Remark saved');
+            }
+        }
+
+        function performSearch() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const newBody = document.getElementById('newBody');
+            const historyBody = document.getElementById('historyBody');
+            
+            // Move to history if DO NO is filled OR DO Copy PDF is uploaded
+            const newDeliveries = deliveries.filter(d => !d.doNo && !d.pdfDoCopy);
+            const historyDeliveries = deliveries.filter(d => d.doNo || d.pdfDoCopy);
+
+            newBody.innerHTML = '';
+            historyBody.innerHTML = '';
+
+            const newFiltered = newDeliveries.filter(d => 
+                (d.requestedDate || '').toLowerCase().includes(searchTerm) ||
+                (d.location || '').toLowerCase().includes(searchTerm) ||
+                (d.loadDate || '').toLowerCase().includes(searchTerm) ||
+                (d.unloadDate || '').toLowerCase().includes(searchTerm) ||
+                (d.lorryDetails || '').toLowerCase().includes(searchTerm) ||
+                (d.unitPrice || '').toLowerCase().includes(searchTerm) ||
+                (d.remark || '').toLowerCase().includes(searchTerm) ||
+                (d.poNo || '').toLowerCase().includes(searchTerm)
+            );
+
+            const historyFiltered = historyDeliveries.filter(d =>
+                (d.requestedDate || '').toLowerCase().includes(searchTerm) ||
+                (d.location || '').toLowerCase().includes(searchTerm) ||
+                (d.loadDate || '').toLowerCase().includes(searchTerm) ||
+                (d.unloadDate || '').toLowerCase().includes(searchTerm) ||
+                (d.lorryDetails || '').toLowerCase().includes(searchTerm) ||
+                (d.unitPrice || '').toLowerCase().includes(searchTerm) ||
+                (d.doNo || '').toLowerCase().includes(searchTerm) ||
+                (d.poNo || '').toLowerCase().includes(searchTerm) ||
+                (d.remark || '').toLowerCase().includes(searchTerm)
+            );
+
+            document.getElementById('emptyNew').style.display = newFiltered.length === 0 && searchTerm ? 'block' : 'none';
+            document.getElementById('emptyHistory').style.display = historyFiltered.length === 0 && searchTerm ? 'block' : 'none';
+
+            newFiltered.forEach(d => {
+                const realIdx = deliveries.indexOf(d);
+                newBody.innerHTML += createNewRow(d, realIdx);
+            });
+
+            historyFiltered.forEach(d => {
+                const realIdx = deliveries.indexOf(d);
+                historyBody.innerHTML += createHistoryRow(d, realIdx);
+            });
+        }
+
+        function resetSearch() {
+            document.getElementById('searchInput').value = '';
+            renderTable();
+            showToast('Search cleared');
+        }
+
+        function closePdfModal() {
+            document.getElementById('pdfModal').classList.remove('active');
+        }
+
+        // Smart Paste - Enhanced Parser
+        let parsedEntry = null;
+
+        function parseAndShowPreview() {
+            const pasteText = document.getElementById('pasteInput').value.trim();
+            if (!pasteText) {
+                alert('Please paste delivery confirmation text');
+                return;
+            }
+
+            parsedEntry = parsePaste(pasteText);
+            confirmParsedEntry(); // Auto-confirm without preview
+        }
+
+        function showPreview(entry) {
+            const previewTable = document.getElementById('previewTable');
+            previewTable.innerHTML = '';
+
+            const fields = [
+                { label: 'Status', key: 'status' },
+                { label: 'Requestor', key: 'requestor' },
+                { label: 'Transporter', key: 'transporter' },
+                { label: 'Customer', key: 'customer' },
+                { label: 'Location', key: 'location' },
+                { label: 'Requested Date', key: 'requested_date' },
+                { label: 'Load Date', key: 'load_date' },
+                { label: 'Unload Date', key: 'unload_date' },
+                { label: 'Lorry Qty', key: 'lorry_qty' },
+                { label: 'Lorry Details', key: 'lorry_details' },
+                { label: 'Unit Price', key: 'unit_price' },
+                { label: 'Total Price', key: 'total_price' },
+                { label: 'PO NO.', key: 'po_no' },
+                { label: 'Remark', key: 'remark' }
+            ];
+
+            fields.forEach(field => {
+                const value = entry[field.key] || '-';
+                const row = `
+                    <tr style="border-bottom: 1px solid #e5e7eb;">
+                        <td style="padding: 8px; font-weight: 500; width: 140px; color: #6b7280;">${field.label}</td>
+                        <td style="padding: 8px; color: #1f2937;">${value}</td>
+                    </tr>
+                `;
+                previewTable.innerHTML += row;
+            });
+
+            document.getElementById('pasteInputArea').style.display = 'none';
+            document.getElementById('previewArea').style.display = 'block';
+        }
+
+        function backToPasteInput() {
+            document.getElementById('pasteInputArea').style.display = 'block';
+            document.getElementById('previewArea').style.display = 'none';
+        }
+
+        function confirmParsedEntry() {
+            if (!parsedEntry) return;
+
+            // Map parsed entry to form fields
+            document.getElementById('requestedDate').value = parsedEntry.requested_date || '';
+            document.getElementById('location').value = parsedEntry.location || '';
+            document.getElementById('loadDate').value = parsedEntry.load_date || '';
+            document.getElementById('unloadDate').value = parsedEntry.unload_date || '';
+            document.getElementById('lorryDetails').value = parsedEntry.lorry_details || '';
+            document.getElementById('unitPrice').value = parsedEntry.unit_price || '';
+            document.getElementById('poNo').value = parsedEntry.po_no || '';
+            document.getElementById('pdfLink').value = '';
+
+            closeSmartPasteModal();
+            document.getElementById('addModal').classList.add('active');
+            showToast('Delivery added from paste');
+        }
+
+        // Main Parser Function
+        function parsePaste(text) {
+            const entry = {
+                status: 'Pending Booking',
+                requested_date: getTodayDate(),
+                requestor: '',
+                transporter: '',
+                customer: '',
+                location: '',
+                load_date: '',
+                unload_date: '',
+                lorry_qty: '',
+                lorry_details: '',
+                unit_price: '',
+                total_price: '',
+                po_no: '',
+                remark: ''
+            };
+
+            const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+
+            if (lines.length === 0) return entry;
+
+            // Process first line for status and lorry details
+            const firstLine = lines[0];
+            const statusMatch = firstLine.match(/^(Confirmed|Check|Checking|To check)\s+(.+)/i);
+            
+            if (statusMatch) {
+                const statusKeyword = statusMatch[1].toLowerCase();
+                if (statusKeyword === 'confirmed') {
+                    entry.status = 'Done Booking';
+                } else if (['check', 'checking', 'to check'].includes(statusKeyword)) {
+                    entry.status = 'Pending Booking';
+                }
+                const restOfLine = statusMatch[2];
+                const { lorryDetails, qty } = extractVehicleAndQty(restOfLine);
+                if (lorryDetails) entry.lorry_details = lorryDetails;
+                if (qty) entry.lorry_qty = qty;
+            }
+
+            // Process remaining lines
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                processLine(line, entry, lines, i);
+            }
+
+            // Auto-detect customer from company keywords
+            if (!entry.customer) {
+                for (const line of lines) {
+                    const companyMatch = line.match(/([\w\s]+(?:SDN BHD|Berhad|Engineering|Construction|Holdings|Resources|Pte|Ltd))/i);
+                    if (companyMatch) {
+                        entry.customer = companyMatch[1].trim();
+                        break;
+                    }
+                }
+            }
+
+            // Auto-detect unit price from RM format
+            if (!entry.unit_price) {
+                for (const line of lines) {
+                    const priceMatch = line.match(/RM\s*([\d,]+(?:\.\d+)?)/i);
+                    if (priceMatch) {
+                        entry.unit_price = priceMatch[1].replace(/,/g, '');
+                        break;
+                    }
+                }
+            }
+
+            // Auto-calculate total price
+            if (entry.lorry_qty && entry.unit_price && !entry.total_price) {
+                const qty = parseInt(entry.lorry_qty) || 0;
+                const price = parseFloat(entry.unit_price) || 0;
+                if (qty > 0 && price > 0) {
+                    entry.total_price = (qty * price).toString();
+                }
+            }
+
+            return entry;
+        }
+
+        function processLine(line, entry, allLines, lineIndex) {
+            // Label-based extraction
+            const labelPatterns = [
+                { regex: /Requestor\s*:\s*(.+)/i, key: 'requestor', format: 'upper' },
+                { regex: /Transporter\s*:\s*(.+)/i, key: 'transporter', format: 'upper' },
+                { regex: /Customer\s*:\s*(.+)/i, key: 'customer' },
+                { regex: /Location\s*:?\s*(.+)/i, key: 'location', format: 'stripUrl' },
+                { regex: /Load\s+Date\s*:\s*(.+)/i, key: 'load_date', format: 'date' },
+                { regex: /Unload\s+Date\s*:\s*(.+)/i, key: 'unload_date', format: 'date' },
+                { regex: /Lorry\s+Qty\s*:\s*(.+)/i, key: 'lorry_qty', format: 'number' },
+                { regex: /Lorry\s+Details\s*:\s*(.+)/i, key: 'lorry_details' },
+                { regex: /Unit\s+Price\s*:\s*(.+)/i, key: 'unit_price', format: 'price' },
+                { regex: /Total\s+Price\s*:\s*(.+)/i, key: 'total_price', format: 'price' },
+                { regex: /^Price\s*:\s*(.+)/i, key: 'unit_price', format: 'price' },
+                { regex: /PO\s+(?:No|Number)\s*:\s*(.+)/i, key: 'po_no' },
+                { regex: /^Status\s*:\s*(.+)/i, key: 'status' },
+                { regex: /Remark\s*:\s*(.+)/i, key: 'remark' },
+                { regex: /Req\.Date\s*:\s*(.+)/i, key: 'requested_date', format: 'date' },
+                { regex: /^Item\s*:\s*(.+)/i, key: 'item' },
+                { regex: /Site\s+(?:person|PIC)\s*:\s*(.+)/i, key: 'sitePic' }
+            ];
+
+            for (const pattern of labelPatterns) {
+                const match = line.match(pattern.regex);
+                if (match) {
+                    const value = match[1].trim();
+
+                    if (pattern.key === 'sitePic') {
+                        entry.remark = (entry.remark ? entry.remark + ' | ' : '') + `Site: ${value}`;
+                        return;
+                    }
+
+                    if (pattern.key === 'item') {
+                        const { lorryDetails, qty } = extractVehicleAndQty(value);
+                        if (lorryDetails) {
+                            entry.lorry_details = lorryDetails;
+                            if (qty) entry.lorry_qty = qty;
+                        } else {
+                            entry.remark = (entry.remark ? entry.remark + ' | ' : '') + `Item: ${value}`;
+                        }
+                        return;
+                    }
+
+                    if (pattern.format === 'date') {
+                        entry[pattern.key] = parseDate(value);
+                    } else if (pattern.format === 'price') {
+                        entry[pattern.key] = value.replace(/RM\s*|,/g, '').trim();
+                    } else if (pattern.format === 'upper') {
+                        entry[pattern.key] = value.toUpperCase();
+                    } else if (pattern.format === 'number') {
+                        entry[pattern.key] = value.replace(/\D/g, '');
+                    } else if (pattern.format === 'stripUrl') {
+                        entry[pattern.key] = value.replace(/https?:\/\/[^\s]+/g, '').trim();
+                    } else {
+                        entry[pattern.key] = value;
+                    }
+                    return;
+                }
+            }
+
+            // Handle combined date line (e.g., "Date: Loading PM 26 June, Unloading AM 27 June")
+            const dateRangeMatch = line.match(/Date\s*:?\s*Loading\s+\w+\s+(.+?),\s*Unloading\s+\w+\s+(.+)/i);
+            if (dateRangeMatch) {
+                entry.load_date = parseDate(dateRangeMatch[1]);
+                entry.unload_date = parseDate(dateRangeMatch[2]);
+                return;
+            }
+
+            // Handle "Delivery: Load 9 July Thursday, Afternoon, Unload 10 July" format
+            const deliveryMatch = line.match(/Delivery\s*:?\s*Load\s+(.+?)(?:,\s*Unload\s+(.+))?$/i);
+            if (deliveryMatch) {
+                entry.load_date = parseDate(deliveryMatch[1]);
+                if (deliveryMatch[2]) {
+                    entry.unload_date = parseDate(deliveryMatch[2]);
+                } else {
+                    // If only load date, use it for both
+                    entry.unload_date = entry.load_date;
+                }
+                return;
+            }
+
+            // Handle simple date line (e.g., "Date: 30 June 2026")
+            const simpleDateMatch = line.match(/^Date\s*:?\s*(.+)/i);
+            if (simpleDateMatch && !entry.load_date) {
+                const dateStr = simpleDateMatch[1];
+                if (!dateStr.toLowerCase().includes('loading') && !dateStr.toLowerCase().includes('unloading')) {
+                    entry.load_date = parseDate(dateStr);
+                    entry.unload_date = parseDate(dateStr);
+                    return;
+                }
+            }
+
+            // Auto-detect vehicle line
+            if (!entry.lorry_details && isVehicleLine(line)) {
+                const { lorryDetails, qty } = extractVehicleAndQty(line);
+                if (lorryDetails) entry.lorry_details = lorryDetails;
+                if (qty) entry.lorry_qty = qty;
+            }
+        }
+
+        function isVehicleLine(line) {
+            const vehicles = ['Platform', 'Crane', 'Cargo', 'Flatbed', 'Trailer', 'LCrane', 'LCargo', 'LPlatform', 'Low Bed', 'Lorry'];
+            return vehicles.some(v => line.includes(v));
+        }
+
+        function extractVehicleAndQty(text) {
+            const vehicles = ['Platform', 'Crane', 'Cargo', 'Flatbed', 'Trailer', 'LCrane', 'LCargo', 'LPlatform', 'Low Bed', 'Lorry'];
+            let lorryDetails = '';
+            let qty = '';
+
+            // Extract vehicle type
+            for (const vehicle of vehicles) {
+                if (text.includes(vehicle)) {
+                    const match = text.match(new RegExp(`([^\\-,]*${vehicle}[^\\-,]*)`, 'i'));
+                    if (match) {
+                        lorryDetails = match[1].trim();
+                        break;
+                    }
+                }
+            }
+
+            // Extract quantity patterns
+            const qtyPatterns = [
+                /(\d+)\s*[Xx×]\s*(?:Units?|pcs?)/i,
+                /[Xx×]\s*(\d+)\s*(?:Units?|pcs?)/i,
+                /(\d+)\s*(?:Units?|pcs?)/i,
+                /[–\-]\s*(\d+)\s*Units?/i
+            ];
+
+            for (const pattern of qtyPatterns) {
+                const match = text.match(pattern);
+                if (match) {
+                    qty = match[1];
+                    break;
+                }
+            }
+
+            return { lorryDetails, qty };
+        }
+
+        function parseDate(dateStr) {
+            if (!dateStr) return '';
+
+            dateStr = dateStr.trim();
+            const currentYear = new Date().getFullYear();
+
+            // Remove time indicators (Afternoon, Morning, AM, PM) and day names
+            dateStr = dateStr.replace(/\s+(Morning|Afternoon|Evening|AM|PM|am|pm)/i, '');
+            const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            for (const day of dayNames) {
+                dateStr = dateStr.replace(new RegExp(`\\s*,?\\s*${day}\\s*,?`, 'i'), '');
+            }
+            dateStr = dateStr.trim();
+
+            // Try various date formats
+            // Format: DD/MM/YY or DD/MM/YYYY
+            let match = dateStr.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+            if (match) {
+                let day = match[1].padStart(2, '0');
+                let month = match[2].padStart(2, '0');
+                let year = match[3].length === 2 ? '20' + match[3] : match[3];
+                return `${year}-${month}-${day}`;
+            }
+
+            // Format: "26 June" or "June 26" or "30 June 2026"
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                                'July', 'August', 'September', 'October', 'November', 'December'];
+            
+            for (let i = 0; i < monthNames.length; i++) {
+                const monthNum = String(i + 1).padStart(2, '0');
+                const monthRegex = new RegExp(`(\\d{1,2})\\s+${monthNames[i]}(?:\\s+(\\d{4}))?`, 'i');
+                match = dateStr.match(monthRegex);
+                if (match) {
+                    const day = match[1].padStart(2, '0');
+                    const year = match[2] || currentYear;
+                    return `${year}-${monthNum}-${day}`;
+                }
+
+                const altRegex = new RegExp(`${monthNames[i]}\\s+(\\d{1,2})(?:\\s+(\\d{4}))?`, 'i');
+                match = dateStr.match(altRegex);
+                if (match) {
+                    const day = match[1].padStart(2, '0');
+                    const year = match[2] || currentYear;
+                    return `${year}-${monthNum}-${day}`;
+                }
+            }
+
+            return '';
+        }
+
+        function getTodayDate() {
+            const today = new Date();
+            return today.toISOString().split('T')[0];
+        }
+
+        // Tab switching
+        function switchTab(e, tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            e.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // ESC key to close all modals
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const addModal = document.getElementById('addModal');
+                const smartPasteModal = document.getElementById('smartPasteModal');
+                const pdfViewerModal = document.getElementById('pdfViewerModal');
+                
+                if (addModal && addModal.classList.contains('active')) {
+                    closeAddModal();
+                }
+                if (smartPasteModal && smartPasteModal.classList.contains('active')) {
+                    closeSmartPasteModal();
+                }
+                if (pdfViewerModal && pdfViewerModal.classList.contains('active')) {
+                    pdfViewerModal.classList.remove('active');
+                }
+            }
+        });
+
+        // Export data as JSON
+        function exportData() {
+            const dataToExport = {
+                deliveries: deliveries,
+                exportDate: new Date().toLocaleString(),
+                user: currentUser
+            };
+            
+            const jsonString = JSON.stringify(dataToExport, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `delivery_data_${new Date().getTime()}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showToast('Data exported successfully');
+        }
+
+        // Trigger file input for import
+        function triggerImport() {
+            document.getElementById('importFile').click();
+        }
+
+        // Import data from JSON
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const content = e.target.result;
+                    const data = JSON.parse(content);
+                    
+                    if (data.deliveries && Array.isArray(data.deliveries)) {
+                        deliveries = data.deliveries;
+                        saveData();
+                        renderTable();
+                        updateStats();
+                        showToast(`Data imported successfully! Loaded ${deliveries.length} deliveries`);
+                    } else {
+                        showToast('Invalid file format. Please use an exported JSON file.');
+                    }
+                } catch (error) {
+                    showToast('Error importing file. Please check the file format.');
+                    console.error('Import error:', error);
+                }
+            };
+            reader.readAsText(file);
+            
+            // Reset input so same file can be imported again
+            event.target.value = '';
+        }
+    </script>
+</body>
+</html>
